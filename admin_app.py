@@ -372,6 +372,64 @@ def _precision_at_k(hits: list, relevant_articles: list) -> float:
     return round(correct / len(hits), 4)
 
 
+_RUNS_DIR = "data/runs"
+
+
+def _save_run(ergebnisse: dict, ev_selected: list, ev_methoden: list,
+              ev_alpha: float, ev_top_k: int) -> str:
+    os.makedirs(_RUNS_DIR, exist_ok=True)
+    datum = datetime.date.today().isoformat()
+    base = f"evaluierung_{datum}_top{ev_top_k}"
+    filename = f"{base}.json"
+    path = os.path.join(_RUNS_DIR, filename)
+    counter = 1
+    while os.path.exists(path):
+        filename = f"{base}_{counter}.json"
+        path = os.path.join(_RUNS_DIR, filename)
+        counter += 1
+
+    serialized: dict = {}
+    for frage, key_hits in ergebnisse.items():
+        serialized[frage] = {
+            f"{cn}|||{mk}": hits for (cn, mk), hits in key_hits.items()
+        }
+
+    data = {
+        "ev_ergebnisse": serialized,
+        "ev_selected":   [list(t) for t in ev_selected],
+        "ev_methoden":   ev_methoden,
+        "ev_alpha_last": ev_alpha,
+        "ev_top_k":      ev_top_k,
+    }
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, indent=2)
+    return filename
+
+
+def _list_runs() -> list[str]:
+    if not os.path.isdir(_RUNS_DIR):
+        return []
+    return sorted(
+        [f for f in os.listdir(_RUNS_DIR) if f.endswith(".json")],
+        reverse=True,
+    )
+
+
+def _load_run(filename: str) -> dict:
+    path = os.path.join(_RUNS_DIR, filename)
+    with open(path, encoding="utf-8") as fh:
+        data = json.load(fh)
+    ergebnisse: dict = {}
+    for frage, key_hits in data["ev_ergebnisse"].items():
+        ergebnisse[frage] = {}
+        for k, hits in key_hits.items():
+            cn, mk = k.split("|||", 1)
+            ergebnisse[frage][(cn, mk)] = hits
+    data["ev_ergebnisse"] = ergebnisse
+    data["ev_selected"]   = [tuple(t) for t in data["ev_selected"]]
+    return data
+
+
 _STANDARD_FRAGEN = """\
 Welche KI-Systeme sind laut EU AI Act vollständig verboten?
 Welche Pflichten haben Anbieter von Hochrisiko-KI-Systemen?
@@ -402,6 +460,29 @@ with tab_eval:
     if not ready:
         st.error("Weaviate nicht erreichbar.")
     else:
+        # ── Vergangene Läufe laden ────────────────────────────────────────────
+        past_runs = _list_runs()
+        if past_runs:
+            with st.expander("📂 Vergangenen Lauf laden", expanded=False):
+                run_choice = st.selectbox(
+                    "Gespeicherter Lauf",
+                    options=past_runs,
+                    index=0,
+                    key="ev_run_choice",
+                )
+                if st.button("Lauf laden", key="ev_load_run", use_container_width=True):
+                    try:
+                        loaded = _load_run(run_choice)
+                        st.session_state["ev_ergebnisse"] = loaded["ev_ergebnisse"]
+                        st.session_state["ev_selected"]   = loaded["ev_selected"]
+                        st.session_state["ev_methoden"]   = loaded["ev_methoden"]
+                        st.session_state["ev_alpha_last"] = loaded["ev_alpha_last"]
+                        st.session_state["ev_top_k"]      = loaded["ev_top_k"]
+                        st.success(f"Lauf **{run_choice}** geladen.")
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"Fehler beim Laden: {exc}")
+
         ev_col1, ev_col2 = st.columns([2, 1])
 
         with ev_col1:
@@ -488,6 +569,8 @@ with tab_eval:
                 st.session_state["ev_methoden"]   = ev_methoden
                 st.session_state["ev_alpha_last"]  = ev_alpha
                 st.session_state["ev_top_k"]      = ev_top_k
+                saved_name = _save_run(ergebnisse, ev_selected, ev_methoden, ev_alpha, ev_top_k)
+                st.success(f"Lauf gespeichert: {saved_name}")
 
         # ── Ergebnisse anzeigen ──────────────────────────────────────────────
 
