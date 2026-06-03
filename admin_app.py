@@ -62,7 +62,7 @@ with st.sidebar:
 
 # --- TABS ---
 st.title("⚖️ EU AI Act — RAG Admin Dashboard")
-tab_sync, tab_db, tab_eval = st.tabs(["🔄 Synchronisierung", "🔍 Datenbank-Browser", "📊 Evaluierung"])
+tab_sync, tab_db, tab_eval = st.tabs(["🔄 Synchronisierung", "🔍 Datenbank-Browser", "Ausgabe"])
 
 # TAB 1: SMART SYNC
 with tab_sync:
@@ -119,22 +119,68 @@ Was sind die Transparenzanforderungen für KI-Systeme?
 Welche Sanktionen drohen bei Verstößen?"""
 
 with tab_eval:
-    st.subheader("Retrieval-Benchmark & Protokoll")
-    ev_col1, ev_col2 = st.columns([2, 1])
+    st.subheader("🔍 Such-Konfiguration")
     
-    with ev_col1:
-        fragen = st.text_area("Testfragen (eine pro Zeile)", value=_STANDARD_FRAGEN, height=150).splitlines()
+    # --- 1. DATEN-AUSWAHL ---
+    st.markdown("**1. Welche Datenbank-Konfigurationen sollen abgefragt werden?**")
     
-    with ev_col2:
-        top_k = st.slider("Top-K", 1, 5, 3)
-        meths = st.multiselect("Methoden", ["semantic", "bm25", "hybrid"], default=["semantic"])
-        status = get_status(client)
-        avail = [k for k, v in status.items() if v["documents"] > 0]
-        sel_cols = st.multiselect("Collections auswählen", avail, format_func=lambda x: f"{x[0]} - {x[1]}")
+    status = get_status(client)
+    col1, col2 = st.columns(2)
+    sel_cols = []
+    
+    with col1:
+        st.markdown("#### OpenAI 3-Small")
+        with st.container(border=True):
+            if status.get(("3Small", "Artikel"), {}).get("documents", 0) > 0:
+                if st.checkbox("Ganze Artikel", key="chk_s_art"): sel_cols.append(("3Small", "Artikel"))
+            if status.get(("3Small", "500"), {}).get("documents", 0) > 0:
+                if st.checkbox("500 Tokens (Fein)", key="chk_s_500"): sel_cols.append(("3Small", "500"))
+            if status.get(("3Small", "2000"), {}).get("documents", 0) > 0:
+                if st.checkbox("2000 Tokens (Grob)", key="chk_s_2000"): sel_cols.append(("3Small", "2000"))
 
-    if st.button("Evaluierung starten", type="primary", use_container_width=True):
-        if not avail: st.error("Bitte erst Daten in Tab 1 importieren!")
-        elif not sel_cols: st.warning("Bitte mindestens eine Collection wählen.")
+    with col2:
+        st.markdown("#### OpenAI 3-Large")
+        with st.container(border=True):
+            if status.get(("3Large", "Artikel"), {}).get("documents", 0) > 0:
+                if st.checkbox("Ganze Artikel", key="chk_l_art"): sel_cols.append(("3Large", "Artikel"))
+            if status.get(("3Large", "500"), {}).get("documents", 0) > 0:
+                if st.checkbox("500 Tokens (Fein)", key="chk_l_500"): sel_cols.append(("3Large", "500"))
+            if status.get(("3Large", "2000"), {}).get("documents", 0) > 0:
+                if st.checkbox("2000 Tokens (Grob)", key="chk_l_2000"): sel_cols.append(("3Large", "2000"))
+
+    if not sel_cols:
+        st.info("Bitte importiere zuerst Daten unter 'Synchronisierung' oder wähle oben mindestens eine Checkbox aus.")
+
+    st.divider()
+
+    # --- 2. SUCH-PARAMETER ---
+    col_param1, col_param2 = st.columns([1, 1])
+    
+    with col_param1:
+        st.markdown("**2. Wie soll gesucht werden?**")
+        meths = []
+        if st.checkbox("Bedeutung (Semantisch)", value=True): meths.append("semantic")
+        if st.checkbox("Stichwörter (BM25)"): meths.append("bm25")
+        if st.checkbox("Kombination (Hybrid)"): meths.append("hybrid")
+
+    with col_param2:
+        st.markdown("**3. Anzeige**")
+        top_k = st.slider("Wie viele Treffer sollen pro Frage angezeigt werden?", 1, 5, 3)
+
+    # --- 3. EVALUATION (RICARDA) ---
+    with st.expander("🛠️ Erweiterte Parameter & Evaluation (Für Ricarda)"):
+        st.markdown("Hier werden später die Test-Datensätze und Scoring-Funktionen integriert.")
+        fragen = st.text_area("Testfragen (eine pro Zeile)", value=_STANDARD_FRAGEN, height=150).splitlines()
+        hybrid_alpha = st.slider("Hybrid-Gewichtung (0 = reines Stichwort, 1 = reine Bedeutung)", 0.0, 1.0, 0.5)
+
+    st.divider()
+
+    # --- 4. EXECUTION ---
+    if st.button("Ausgabe starten", type="primary", use_container_width=True):
+        if not sel_cols: 
+            st.warning("Bitte wähle oben mindestens eine Konfiguration aus.")
+        elif not meths:
+            st.warning("Bitte wähle mindestens eine Suchmethode aus.")
         else:
             ergebnisse = {}
             bar = st.progress(0)
@@ -145,19 +191,20 @@ with tab_eval:
                 ergebnisse[f] = {}
                 for mk, sk in sel_cols:
                     for m in meths:
-                        hits = retrieve_chunks(client, mk, sk, f.strip(), top_k, m)
+                        hits = retrieve_chunks(client, mk, sk, f.strip(), top_k, m, hybrid_alpha)
                         ergebnisse[f][(collection_prefix(mk, sk), m)] = hits
                         step += 1
                         bar.progress(step / total_steps)
             
             st.session_state["eval_data"] = ergebnisse
-            st.success("Benchmark abgeschlossen!")
+            st.success("Abfrage abgeschlossen!")
 
-    # ERGEBNISSE & EXPORT
+    # --- 5. RESULT-RENDERING ---
     if "eval_data" in st.session_state:
         data = st.session_state["eval_data"]
         
-        md = ["# Evaluierung EU AI Act RAG", f"Datum: {datetime.date.today()}", "---"]
+        # Markdown Generierung
+        md = ["# Ausgabe EU AI Act RAG", f"Datum: {datetime.date.today()}", "---"]
         for q, res in data.items():
             md.append(f"## Frage: {q}")
             for (col, meth), hits in res.items():
@@ -168,10 +215,18 @@ with tab_eval:
                 md.append("")
         
         md_final = "\n".join(md)
-        
-        st.divider()
         st.download_button("📥 Protokoll (.md) herunterladen", md_final, file_name=f"eval_{datetime.date.today()}.md")
         
+        # Visuelle Darstellung
+        st.markdown("### Suchergebnisse")
         for q, res in data.items():
-            with st.expander(f"Details für: {q}"):
-                st.write(res)
+            with st.expander(f"Frage: {q}"):
+                for (col_name, meth), hits in res.items():
+                    st.markdown(f"**Konfiguration:** `{col_name}` | **Modus:** `{meth}`")
+                    if not hits:
+                        st.caption("Keine Treffer gefunden.")
+                        continue
+                    
+                    for hit in hits:
+                        st.info(f"**Artikel {hit['article_number']}** (Score: {hit['score']})\n\n{hit['content']}")
+                    st.divider()
