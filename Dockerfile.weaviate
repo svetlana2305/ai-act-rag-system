@@ -1,1 +1,4 @@
 FROM semitechnologies/weaviate:1.28.4
+
+EXPOSE 8080
+EXPOSE 50051
