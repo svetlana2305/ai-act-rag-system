@@ -1,0 +1,45 @@
+{
+  "_comment": "Manuell annotiertes Goldstandard-Testset für Precision@K-Berechnung. Jede Frage enthält die Artikel-Nummern des EU AI Act, die die korrekte Antwort enthalten. Bitte von Ricarda prüfen und ergänzen.",
+  "fragen": [
+    {
+      "frage": "Welche KI-Systeme sind laut EU AI Act vollständig verboten?",
+      "relevante_artikel": [5]
+    },
+    {
+      "frage": "Welche Pflichten haben Anbieter von Hochrisiko-KI-Systemen?",
+      "relevante_artikel": [16, 17, 18]
+    },
+    {
+      "frage": "Was sind die Transparenzanforderungen für KI-Systeme?",
+      "relevante_artikel": [50, 13]
+    },
+    {
+      "frage": "Wie werden KI-Systeme mit hohem Risiko klassifiziert?",
+      "relevante_artikel": [6, 7]
+    },
+    {
+      "frage": "Welche Sanktionen drohen bei Verstößen gegen den EU AI Act?",
+      "relevante_artikel": [99, 100]
+    },
+    {
+      "frage": "Welche Anforderungen gelten für Trainingsdaten von Hochrisiko-KI?",
+      "relevante_artikel": [10, 17]
+    },
+    {
+      "frage": "Welche Rolle spielt menschliche Aufsicht bei KI-Systemen?",
+      "relevante_artikel": [14, 26]
+    },
+    {
+      "frage": "Was sind Allzweck-KI-Modelle und welche Pflichten gelten für sie?",
+      "relevante_artikel": [51, 53, 55]
+    },
+    {
+      "frage": "Wie läuft das Konformitätsbewertungsverfahren ab?",
+      "relevante_artikel": [43, 44]
+    },
+    {
+      "frage": "Welche Rechte haben betroffene Personen gegenüber automatisierten Entscheidungen?",
+      "relevante_artikel": [86, 50]
+    }
+  ]
+}

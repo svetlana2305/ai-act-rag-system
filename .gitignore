@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtuelle Umgebungen
+venv/
+.venv/
+
+# Umgebungsvariablen — NIEMALS einchecken!
+.env
+
+# Lokale Cache-Daten (werden zur Laufzeit erzeugt)
+data/cache_*.json
+data/last_scraped_*.txt
+
+# macOS / IDEs
+.DS_Store
+.vscode/
+.idea/
