@@ -94,7 +94,7 @@ with tab_sync:
                                 with st.spinner("Embedding..."): import_articles(client, corpus, m_key, s_key)
                                 st.rerun()
 
-# TAB 2: BROWSER (FIX FÜR DUPLICATE ID)
+# TAB 2: BROWSER
 with tab_db:
     st.subheader("Datenbank durchsuchen")
     c1, c2 = st.columns(2)
@@ -107,7 +107,6 @@ with tab_db:
 
     for row in st.session_state.get("db_rows", []):
         with st.expander(f"Art. {row['article_number']}: {row['title']} ({row['chunk_count']} Chunks)"):
-            # FIX: Eindeutiger Key für Textarea
             st.text_area("Volltext", row["full_text"], height=200, disabled=True, key=f"ta_{row['uuid']}")
             if st.button("Chunks anzeigen", key=f"btn_ch_{row['uuid']}"):
                 for c in get_chunks_for_article(client, db_m, db_s, row["uuid"]):
@@ -158,7 +157,6 @@ with tab_eval:
     if "eval_data" in st.session_state:
         data = st.session_state["eval_data"]
         
-        # Markdown-Protokoll erstellen
         md = ["# Evaluierung EU AI Act RAG", f"Datum: {datetime.date.today()}", "---"]
         for q, res in data.items():
             md.append(f"## Frage: {q}")
