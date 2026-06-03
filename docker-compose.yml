@@ -6,7 +6,7 @@ networks:
 
 services:
   weaviate:
-    image: cr.weaviate.io/semitechnologies/weaviate:1.24.1
+    image: cr.weaviate.io/semitechnologies/weaviate:1.28.4
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -29,7 +29,7 @@ services:
   streamlit-app:
     build:
       context: .
-      dockerfile: Dockerfile.txt
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "8501:8501"
@@ -41,6 +41,8 @@ services:
     environment:
       - WEAVIATE_URL=http://weaviate:8080
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ADMIN_USER_1=${ADMIN_USER_1}
+      - ADMIN_PASS_1=${ADMIN_PASS_1}
       - DATA_DIR=/app/data
     volumes:
       - app_data:/app/data
