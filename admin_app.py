@@ -116,8 +116,17 @@ with tab_eval:
             st.markdown("### 🤖 Antwort")
             st.info(st.session_state["rag_answer"])
             st.markdown("#### Quellen")
+            
+            # Bereinigte Quellenanzeige
             for i, h in enumerate(st.session_state.get("rag_sources", []), 1):
-                st.markdown(f"**[{i}]** Art. {h.get('article_number', 'Unbekannt')}: {h.get('title', 'Ohne Titel')}")
+                # Fallback-Logik für saubere Darstellung
+                art_nr = h.get('article_number')
+                art_title = h.get('title')
+                
+                label = f"Art. {art_nr}" if art_nr and art_nr != "None" else "Relevantes Dokument"
+                sub_label = f": {art_title}" if art_title and art_title != "None" else ""
+                
+                st.markdown(f"**[{i}]** {label}{sub_label}")
             st.divider()
 
         data = st.session_state["eval_data"]
