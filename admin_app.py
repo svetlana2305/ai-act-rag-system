@@ -113,6 +113,9 @@ with st.sidebar:
         st.session_state["username"] = ""
         st.rerun()
 
+    st.markdown("---")
+    st.caption("Version 0.2 · Stand: 03.06.2026")
+
 
 # Hauptbereich — Tabs
 
