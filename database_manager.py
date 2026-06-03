@@ -26,8 +26,10 @@ def collection_prefix(model_key: str, strategy_key: str) -> str:
 def get_client():
     url = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
     api_key = os.getenv("OPENAI_API_KEY")
-        clean_host = url.replace("http://", "").replace("https://", "")
-        if ":" in clean_host:
+    
+    clean_host = url.replace("http://", "").replace("https://", "")
+    
+    if ":" in clean_host:
         host, port_str = clean_host.split(":")
         port = int(port_str)
     else:
@@ -37,7 +39,7 @@ def get_client():
     return weaviate.connect_to_custom(
         host=host,
         port=port,
-        grpc_port=port + 1, # Sliplane tunnelt gRPC meist über den Folgeport oder Standard
+        grpc_port=port + 1,
         headers={"X-OpenAI-Api-Key": api_key}
     )
 
