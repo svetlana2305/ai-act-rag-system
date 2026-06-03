@@ -113,4 +113,17 @@ with tab_eval:
         with st.container(border=True):
             if db_status.get(("3Small", "Artikel"), {}).get("documents", 0) > 0:
                 if st.checkbox("Ganze Artikel", key="chk_s_art"): sel_cols.append(("3Small", "Artikel"))
-            if db_status.get(("3Small
+            if db_status.get(("3Small", "500"), {}).get("documents", 0) > 0:
+                if st.checkbox("500 Tokens (Feines Chunking)", key="chk_s_500"): sel_cols.append(("3Small", "500"))
+            if db_status.get(("3Small", "2000"), {}).get("documents", 0) > 0:
+                if st.checkbox("2000 Tokens (Grobes Chunking)", key="chk_s_2000"): sel_cols.append(("3Small", "2000"))
+
+    with col_matrix2:
+        st.markdown("#### OpenAI 3-Large")
+        with st.container(border=True):
+            if db_status.get(("3Large", "Artikel"), {}).get("documents", 0) > 0:
+                if st.checkbox("Ganze Artikel", key="chk_l_art"): sel_cols.append(("3Large", "Artikel"))
+            if db_status.get(("3Large", "500"), {}).get("documents", 0) > 0:
+                if st.checkbox("500 Tokens (Feines Chunking)", key="chk_l_500"): sel_cols.append(("3Large", "500"))
+            if db_status.get(("3Large", "2000"), {}).get("documents", 0) > 0:
+                if st.checkbox("2000 Tokens (Grobes Chunking)", key="chk_l_2000"): sel_cols.append(("3Large", "2000"))
