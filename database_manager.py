@@ -36,10 +36,10 @@ def get_client():
         host = clean_host
         port = 8080
         
-    return weaviate.connect_to_custom(
+    # HIER IST DER FIX: connect_to_local akzeptiert 'host' und 'port'
+    return weaviate.connect_to_local(
         host=host,
         port=port,
-        grpc_port=port + 1,
         headers={"X-OpenAI-Api-Key": api_key}
     )
 
