@@ -40,7 +40,7 @@ corpus = load_cached_corpus()
 is_scraped = len(corpus) >= 306
 db_status = get_status(client)
 
-# --- SIDEBAR (WARTUNG) ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.title("System-Status")
     if client.is_ready(): st.success("Weaviate online")
@@ -71,18 +71,22 @@ with tab_eval:
         fragen_text = st.text_area("Testfragen (eine pro Zeile)", height=150)
         fragen = [f.strip() for f in fragen_text.splitlines() if f.strip()]
 
-    with st.expander("⚙️ Parameter"):
+    with st.expander("⚙️ Parameter", expanded=True):
         c1, c2 = st.columns(2)
         sel_cols = []
         with c1:
+            st.markdown("**Konfigurationen:**")
             for m in MODELS:
                 for s in STRATEGIES:
                     if db_status.get((m, s), {}).get("documents", 0) > 0:
-                        if st.checkbox(f"{m} - {s}", key=f"chk_{m}_{s}"): sel_cols.append((m, s))
+                        if st.checkbox(f"{m} / {s}", key=f"chk_{m}_{s}"): sel_cols.append((m, s))
         with c2:
-            meths = ["semantic"] if st.checkbox("Bedeutung", True) else []
-            if st.checkbox("Stichwort"): meths.append("bm25")
-            top_k = st.slider("Treffer", 1, 5, 3)
+            st.markdown("**Methoden:**")
+            meths = []
+            if st.checkbox("Bedeutung", True): meths.append("semantic")
+            if st.checkbox("Stichwort (BM25)"): meths.append("bm25")
+            if st.checkbox("Hybrid"): meths.append("hybrid")
+            top_k = st.slider("Treffer (Top-K)", 1, 5, 3)
 
     if st.button("Suchen & Generieren", type="primary"):
         ergebnisse = {}
@@ -93,7 +97,7 @@ with tab_eval:
                     ergebnisse[f][(collection_prefix(mk, sk), m)] = retrieve_chunks(client, mk, sk, f, top_k, m, 0.5)
         st.session_state["eval_data"] = ergebnisse
         
-        # Generierung (Nur bei Einzelanfragen)
+        # Generierung
         if mode == "Einzelne Frage" and ergebnisse and sel_cols:
             first_key = list(ergebnisse[fragen[0]].keys())[0]
             kontext = ergebnisse[fragen[0]][first_key]
@@ -138,5 +142,5 @@ with tab_browser:
     db_s = c2.selectbox("Strategie", list(STRATEGIES.keys()))
     if st.button("Laden"): st.session_state["db_rows"] = browse_collection(client, db_m, db_s, 20)
     for row in st.session_state.get("db_rows", []):
-        with st.expander(f"Art. {row['article_number']}: {row['title']}"):
-            st.text_area("Volltext", row["full_text"], disabled=True)
+        with st.expander(f"Art. {row.get('article_number', 'Unbekannt')}: {row.get('title', 'Ohne Titel')}"):
+            st.text_area("Volltext", row.get("full_text", ""), disabled=True)
