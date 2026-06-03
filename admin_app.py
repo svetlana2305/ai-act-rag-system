@@ -90,7 +90,7 @@ with tab_eval:
         st.session_state["eval_data"] = ergebnisse
         
         # Generierung
-        if mode == "Einzelne Frage" and ergebnisse:
+        if mode == "Einzelne Frage" and ergebnisse and sel_cols:
             first_key = list(ergebnisse[fragen[0]].keys())[0]
             kontext = ergebnisse[fragen[0]][first_key]
             if kontext:
@@ -107,14 +107,23 @@ with tab_eval:
             st.markdown("### 🤖 Antwort")
             st.info(st.session_state["rag_answer"])
             st.markdown("#### Quellen")
-            for i, h in enumerate(st.session_state["rag_sources"], 1):
+            for i, h in enumerate(st.session_state.get("rag_sources", []), 1):
                 st.markdown(f"**[{i}]** Art. {h.get('article_number', 'Unbekannt')}: {h.get('title', 'Ohne Titel')}")
             st.divider()
 
-        # MD-Export und Detail-Quellen
         data = st.session_state["eval_data"]
         for q, res in data.items():
             with st.expander(f"Quellen für: {q}"):
                 for (col, meth), hits in res.items():
                     for h in hits:
                         st.info(f"**Art. {h.get('article_number', 'Unbekannt')}**: {h['content']}")
+
+with tab_browser:
+    st.subheader("Datenbank durchsuchen")
+    c1, c2 = st.columns(2)
+    db_m = c1.selectbox("Modell", list(MODELS.keys()))
+    db_s = c2.selectbox("Strategie", list(STRATEGIES.keys()))
+    if st.button("Laden"): st.session_state["db_rows"] = browse_collection(client, db_m, db_s, 20)
+    for row in st.session_state.get("db_rows", []):
+        with st.expander(f"Art. {row['article_number']}: {row['title']}"):
+            st.text_area("Volltext", row["full_text"], disabled=True)
