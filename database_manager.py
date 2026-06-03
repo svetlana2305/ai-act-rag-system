@@ -36,11 +36,11 @@ def get_client():
         host = clean_host
         port = 8080
         
-    # HIER IST DER FIX: connect_to_local akzeptiert 'host' und 'port'
     return weaviate.connect_to_local(
         host=host,
         port=port,
         headers={"X-OpenAI-Api-Key": api_key}
+    )i-Key": api_key}
     )
 
 def get_status(client) -> dict:
