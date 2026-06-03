@@ -194,11 +194,34 @@ with tab_eval:
         for q, res in data.items():
             md.append(f"## Frage: {q}")
             for (col, meth), hits in res.items():
-                md.append(f"### {col} ({meth})")
-                if hits:
-                    md.append(f"Bester Treffer: Art. {hits[0]['article_number']} (Score: {hits[0]['score']})")
-                    md.append(f"> {hits[0]['content'][:250]}...")
-                md.append("")
+                # Methode für das Dokument schön übersetzen
+                meth_de = "Bedeutung" if meth=="semantic" else "Stichwort" if meth=="bm25" else "Hybrid"
+                md.append(f"### Setup: {col} | Suchlogik: {meth_de}")
+                
+                if not hits:
+                    md.append("*Keine relevanten Textstellen gefunden.*\n")
+                else:
+                    for i, hit in enumerate(hits, 1):
+                        md.append(f"**Treffer {i}: Artikel {hit['article_number']} - {hit['title']}** (Score: {hit['score']})")
+                        md.append(f"{hit['content']}\n")
+                md.append("---") # Trennstrich für bessere Lesbarkeit zwischen Setups
+        
+        md_final = "\n".join(md)
+        st.download_button("Protokoll (.md) herunterladen", md_final, file_name=f"rag_ausgabe_{datetime.date.today()}.md")
+        
+        st.markdown("### Gefundene Textstellen")
+        for q, res in data.items():
+            with st.expander(f"Ergebnisse für: {q}", expanded=True):
+                for (col_name, meth), hits in res.items():
+                    meth_de = "Bedeutung" if meth=="semantic" else "Stichwort" if meth=="bm25" else "Hybrid"
+                    st.markdown(f"**Setup:** `{col_name}` | **Suchlogik:** `{meth_de}`")
+                    
+                    if not hits:
+                        st.caption("Keine relevanten Textstellen in dieser Konfiguration gefunden.")
+                    else:
+                        for hit in hits:
+                            st.info(f"**Artikel {hit['article_number']}: {hit['title']}** (Score: {hit['score']})\n\n{hit['content']}")
+                    st.divider()
         
         md_final = "\n".join(md)
         st.download_button("Protokoll (.md) herunterladen", md_final, file_name=f"rag_ausgabe_{datetime.date.today()}.md")
