@@ -40,7 +40,7 @@ corpus = load_cached_corpus()
 is_scraped = len(corpus) >= 306
 db_status = get_status(client)
 
-# --- SIDEBAR ---
+# --- SIDEBAR (WARTUNG) ---
 with st.sidebar:
     st.title("System-Status")
     if client.is_ready(): st.success("Weaviate online")
@@ -67,6 +67,10 @@ with tab_eval:
     user_query = st.text_input("Deine Frage:") if mode == "Einzelne Frage" else ""
     fragen = [user_query.strip()] if mode == "Einzelne Frage" and user_query else []
     
+    if mode == "Batch-Testreihe":
+        fragen_text = st.text_area("Testfragen (eine pro Zeile)", height=150)
+        fragen = [f.strip() for f in fragen_text.splitlines() if f.strip()]
+
     with st.expander("⚙️ Parameter"):
         c1, c2 = st.columns(2)
         sel_cols = []
@@ -89,7 +93,7 @@ with tab_eval:
                     ergebnisse[f][(collection_prefix(mk, sk), m)] = retrieve_chunks(client, mk, sk, f, top_k, m, 0.5)
         st.session_state["eval_data"] = ergebnisse
         
-        # Generierung
+        # Generierung (Nur bei Einzelanfragen)
         if mode == "Einzelne Frage" and ergebnisse and sel_cols:
             first_key = list(ergebnisse[fragen[0]].keys())[0]
             kontext = ergebnisse[fragen[0]][first_key]
@@ -102,6 +106,7 @@ with tab_eval:
                 st.session_state["rag_sources"] = kontext
         st.rerun()
 
+    # Ausgabe
     if "eval_data" in st.session_state:
         if "rag_answer" in st.session_state:
             st.markdown("### 🤖 Antwort")
@@ -112,6 +117,14 @@ with tab_eval:
             st.divider()
 
         data = st.session_state["eval_data"]
+        md = ["# Ergebnis", f"Datum: {datetime.date.today()}"]
+        for q, res in data.items():
+            md.append(f"## Frage: {q}")
+            for (col, meth), hits in res.items():
+                for i, h in enumerate(hits, 1):
+                    md.append(f"**[{i}] Art. {h.get('article_number', 'Unbekannt')}**: {h['content']}")
+        
+        st.download_button("📥 Protokoll (.md) laden", "\n".join(md), file_name="rag.md", key="dwn_1")
         for q, res in data.items():
             with st.expander(f"Quellen für: {q}"):
                 for (col, meth), hits in res.items():
