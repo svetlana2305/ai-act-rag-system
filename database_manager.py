@@ -24,7 +24,7 @@ def collection_prefix(model_key: str, strategy_key: str) -> str:
     return f"AIAct_{model_key}_{strategy_key}"
 
 def get_client():
-    url = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
+    url = os.getenv("WEAVIATE_URL", "http://weaviate.internal:8080")
     api_key = os.getenv("OPENAI_API_KEY")
     
     clean_host = url.replace("http://", "").replace("https://", "")
@@ -36,11 +36,14 @@ def get_client():
         host = clean_host
         port = 8080
         
-    return weaviate.connect_to_local(
-        host=host,
-        port=port,
+    return weaviate.connect_to_custom(
+        http_host=host,
+        http_port=port,
+        http_secure=False,
+        grpc_host=host,
+        grpc_port=50051,
+        grpc_secure=False,
         headers={"X-OpenAI-Api-Key": api_key}
-    )i-Key": api_key}
     )
 
 def get_status(client) -> dict:
