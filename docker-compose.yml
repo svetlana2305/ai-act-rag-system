@@ -6,11 +6,10 @@ networks:
 
 services:
   weaviate:
-    image: cr.weaviate.io/semitechnologies/weaviate:1.28.4
+    image: cr.weaviate.io/semitechnologies/weaviate:1.24.1
     restart: unless-stopped
     ports:
       - "8080:8080"
-      - "50051:50051"
     volumes:
       - weaviate_data:/var/lib/weaviate
     networks:
@@ -22,18 +21,15 @@ services:
       DEFAULT_VECTORIZER_MODULE: "text2vec-openai"
       ENABLE_MODULES: "text2vec-openai,generative-openai"
       OPENAI_APIKEY: ${OPENAI_API_KEY}
-      CLUSTER_HOSTNAME: "node1"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/v1/.well-known/ready"]
       interval: 15s
       timeout: 10s
-      retries: 12
-      start_period: 60s
 
   streamlit-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.txt
     restart: unless-stopped
     ports:
       - "8501:8501"
@@ -43,19 +39,12 @@ services:
       weaviate:
         condition: service_healthy
     environment:
-      WEAVIATE_URL: ${WEAVIATE_URL:-http://weaviate:8080}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      ADMIN_USER_1: ${ADMIN_USER_1}
-      ADMIN_PASS_1: ${ADMIN_PASS_1}
-      ADMIN_USER_2: ${ADMIN_USER_2:-}
-      ADMIN_PASS_2: ${ADMIN_PASS_2:-}
-      ADMIN_USER_3: ${ADMIN_USER_3:-}
-      ADMIN_PASS_3: ${ADMIN_PASS_3:-}
+      - WEAVIATE_URL=http://weaviate:8080
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATA_DIR=/app/data
     volumes:
-      - scrape_data:/app/data
+      - app_data:/app/data
 
 volumes:
   weaviate_data:
-    driver: local
-  scrape_data:
-    driver: local
+  app_data:
