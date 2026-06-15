@@ -66,12 +66,12 @@ with tab_eval:
     mode = st.radio("Modus", ["Einzelne Frage", "Batch-Testreihe"], horizontal=True)
     user_query = st.text_input("Deine Frage:") if mode == "Einzelne Frage" else ""
     fragen = [user_query.strip()] if mode == "Einzelne Frage" and user_query else []
-    
+
     if mode == "Batch-Testreihe":
         fragen_text = st.text_area("Testfragen (eine pro Zeile)", height=150)
         fragen = [f.strip() for f in fragen_text.splitlines() if f.strip()]
 
-        with st.expander("⚙️ Parameter", expanded=True):
+    with st.expander("⚙️ Parameter", expanded=True):
         c1, c2 = st.columns(2)
 
         with c1:
@@ -111,7 +111,7 @@ with tab_eval:
             if st.checkbox("Stichwort (BM25)", key="m_bm"): meths.append("bm25")
             if st.checkbox("Hybrid (BM25 + Dense)", key="m_hyb"): meths.append("hybrid")
             top_k = st.slider("Treffer (Top-K)", 1, 5, 3)
-            
+
     if st.button("Suchen & Generieren", type="primary"):
         ergebnisse = {}
         for f in fragen:
@@ -120,7 +120,7 @@ with tab_eval:
                 for m in meths:
                     ergebnisse[f][(collection_prefix(mk, sk), m)] = retrieve_chunks(client, mk, sk, f, top_k, m, 0.5)
         st.session_state["eval_data"] = ergebnisse
-        
+
         # Generierung
         if mode == "Einzelne Frage" and ergebnisse and sel_cols:
             first_key = list(ergebnisse[fragen[0]].keys())[0]
@@ -140,16 +140,15 @@ with tab_eval:
             st.markdown("### 🤖 Antwort")
             st.info(st.session_state["rag_answer"])
             st.markdown("#### Quellen")
-            
+
             # Bereinigte Quellenanzeige
             for i, h in enumerate(st.session_state.get("rag_sources", []), 1):
-                # Fallback-Logik für saubere Darstellung
                 art_nr = h.get('article_number')
                 art_title = h.get('title')
-                
+
                 label = f"Art. {art_nr}" if art_nr and art_nr != "None" else "Relevantes Dokument"
                 sub_label = f": {art_title}" if art_title and art_title != "None" else ""
-                
+
                 st.markdown(f"**[{i}]** {label}{sub_label}")
             st.divider()
 
@@ -162,7 +161,7 @@ with tab_eval:
             by_method = {}
             for (col, meth), hits in res.items():
                 by_method.setdefault(meth, []).append((col, hits))
-            method_names = {"semantic": "Bedeutung", "bm25": "Stichwort (BM25)", "hybrid": "Hybrid"}
+            method_names = {"semantic": "Semantisch (Dense)", "bm25": "Stichwort (BM25)", "hybrid": "Hybrid (BM25 + Dense)"}
             for meth, blocks in by_method.items():
                 md.append(f"### Methode: {method_names.get(meth, meth)}")
                 for col, hits in blocks:
@@ -174,7 +173,7 @@ with tab_eval:
                         label = label_map.get(src, "Dok.")
                         md.append(f"**[{i}] {label} {art_nr}**: {h['content']}")
                     md.append("")
-        
+
         st.download_button("📥 Protokoll (.md) laden", "\n".join(md), file_name="rag.md", key="dwn_1")
         for q, res in data.items():
             with st.expander(f"Quellen für: {q}"):
