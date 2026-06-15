@@ -8,8 +8,8 @@ import requests
 load_dotenv()
 
 from database_manager import (
-    MODELS, STRATEGIES, collection_prefix, browse_collection, 
-    delete_collection, get_chunks_for_article, get_client, 
+    MODELS, STRATEGIES, collection_prefix, browse_collection,
+    delete_collection, get_chunks_for_article, get_client,
     get_status, import_articles, retrieve_chunks
 )
 from scraper import check_and_scrape, clear_cache, load_cached_corpus
@@ -45,7 +45,9 @@ with st.sidebar:
     st.title("System-Status")
     if client.is_ready(): st.success("Weaviate online")
     else: st.error("Weaviate offline")
-    
+
+    st.caption(f"Korpus im Cache: {len(corpus)} Dokumente")
+
     with st.expander("System-Wartung"):
         if st.button("Neu Scrapen", use_container_width=True):
             with st.status("Lade Daten..."): check_and_scrape()
@@ -53,15 +55,85 @@ with st.sidebar:
         if st.button("Cache löschen", use_container_width=True):
             clear_cache()
             st.rerun()
-    
+
     if st.button("Abmelden", use_container_width=True):
         st.session_state["auth"] = False
         st.rerun()
 
 # --- HAUPTSEITE ---
 st.title("EU AI Act — RAG Forschungs-App")
-tab_eval, tab_browser, tab_metrics = st.tabs(["Suche & Ausgabe", "Datenbank-Browser", "Evaluation"])
+tab_data, tab_eval, tab_browser, tab_metrics = st.tabs(
+    ["Daten & Import", "Suche & Ausgabe", "Datenbank-Browser", "Evaluation"]
+)
 
+# ================== TAB: DATEN & IMPORT ==================
+with tab_data:
+    st.subheader("Korpus & Import")
+
+    if not is_scraped:
+        st.warning(f"Korpus unvollständig ({len(corpus)} Dokumente). Bitte zuerst in der Sidebar 'Neu Scrapen'.")
+    else:
+        st.success(f"Korpus bereit: {len(corpus)} Dokumente.")
+
+    st.markdown("### Status der Collections")
+    status_rows = []
+    for m in MODELS:
+        for s in STRATEGIES:
+            info = db_status.get((m, s), {})
+            status_rows.append({
+                "Modell": m,
+                "Strategie": s,
+                "Dokumente": info.get("documents", 0),
+                "Chunks": info.get("chunks", 0),
+            })
+    st.dataframe(status_rows, use_container_width=True, hide_index=True)
+
+    st.markdown("### Import durchführen")
+    st.caption(
+        "Lokale Modelle (SBERT, E5Large) laden beim ersten Import ihr Modell herunter "
+        "und brauchen deutlich länger als die OpenAI-Modelle."
+    )
+
+    ic1, ic2 = st.columns(2)
+    imp_model = ic1.selectbox("Modell", list(MODELS.keys()), key="imp_model")
+    imp_strat = ic2.selectbox("Strategie", list(STRATEGIES.keys()), key="imp_strat")
+
+    bcol1, bcol2 = st.columns(2)
+
+    if bcol1.button("Diese Kombination importieren", type="primary", use_container_width=True):
+        if not corpus:
+            st.error("Kein Korpus im Cache. Erst scrapen.")
+        else:
+            with st.spinner(f"Importiere {imp_model} / {imp_strat} ..."):
+                result = import_articles(client, corpus, imp_model, imp_strat)
+            st.success(f"Fertig: {result['documents']} Dokumente, {result['chunks']} Chunks.")
+            st.rerun()
+
+    if bcol2.button("Diese Collection löschen", use_container_width=True):
+        delete_collection(client, imp_model, imp_strat)
+        st.success(f"Collection {imp_model} / {imp_strat} gelöscht.")
+        st.rerun()
+
+    st.divider()
+    st.markdown("### Alle Kombinationen importieren")
+    st.caption("Importiert alle 16 Kombinationen (4 Modelle × 4 Strategien) nacheinander. Kann lange dauern und kostet OpenAI-Guthaben.")
+
+    if st.button("ALLE importieren", use_container_width=True):
+        if not corpus:
+            st.error("Kein Korpus im Cache. Erst scrapen.")
+        else:
+            combos = [(m, s) for m in MODELS for s in STRATEGIES]
+            prog = st.progress(0.0, text="Starte ...")
+            for idx, (m, s) in enumerate(combos):
+                prog.progress(idx / len(combos), text=f"Importiere {m} / {s} ...")
+                try:
+                    import_articles(client, corpus, m, s)
+                except Exception as e:
+                    st.warning(f"{m} / {s} fehlgeschlagen: {e}")
+            prog.progress(1.0, text="Alle Importe abgeschlossen.")
+            st.rerun()
+
+# ================== TAB: SUCHE & AUSGABE ==================
 with tab_eval:
     mode = st.radio("Modus", ["Einzelne Frage", "Batch-Testreihe"], horizontal=True)
     user_query = st.text_input("Deine Frage:") if mode == "Einzelne Frage" else ""
@@ -128,7 +200,7 @@ with tab_eval:
             if kontext:
                 kontext_text = "\n".join([f"[{i+1}] Art. {h.get('article_number', 'Unbekannt')}: {h['content']}" for i, h in enumerate(kontext)])
                 prompt = f"Beantworte die Frage basierend auf dem Kontext. Zitiere Quellen als [1], [2].\n\nKontext:\n{kontext_text}\n\nFrage: {fragen[0]}"
-                resp = requests.post("https://api.openai.com/v1/chat/completions", headers={"Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}", "Content-Type": "application/json"}, 
+                resp = requests.post("https://api.openai.com/v1/chat/completions", headers={"Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}", "Content-Type": "application/json"},
                                      json={"model": "gpt-4o", "messages": [{"role": "user", "content": prompt}]})
                 st.session_state["rag_answer"] = resp.json()["choices"][0]["message"]["content"]
                 st.session_state["rag_sources"] = kontext
@@ -140,15 +212,13 @@ with tab_eval:
             st.markdown("### 🤖 Antwort")
             st.info(st.session_state["rag_answer"])
             st.markdown("#### Quellen")
-
-            # Bereinigte Quellenanzeige
             for i, h in enumerate(st.session_state.get("rag_sources", []), 1):
                 art_nr = h.get('article_number')
                 art_title = h.get('title')
-
-                label = f"Art. {art_nr}" if art_nr and art_nr != "None" else "Relevantes Dokument"
+                src = h.get('source_type', 'artikel')
+                label_map = {"artikel": "Art.", "anhang": "Anhang", "erwaegungsgrund": "Erw.-Grund"}
+                label = f"{label_map.get(src, 'Dok.')} {art_nr}" if art_nr and art_nr != "None" else "Relevantes Dokument"
                 sub_label = f": {art_title}" if art_title and art_title != "None" else ""
-
                 st.markdown(f"**[{i}]** {label}{sub_label}")
             st.divider()
 
@@ -157,7 +227,6 @@ with tab_eval:
         for q, res in data.items():
             md.append(f"## Frage: {q}")
             md.append("")
-            # Gruppiere nach Methode
             by_method = {}
             for (col, meth), hits in res.items():
                 by_method.setdefault(meth, []).append((col, hits))
@@ -179,8 +248,12 @@ with tab_eval:
             with st.expander(f"Quellen für: {q}"):
                 for (col, meth), hits in res.items():
                     for h in hits:
-                        st.info(f"**Art. {h.get('article_number', 'Unbekannt')}**: {h['content']}")
+                        src = h.get("source_type", "artikel")
+                        label_map = {"artikel": "Art.", "anhang": "Anhang", "erwaegungsgrund": "Erw.-Grund"}
+                        label = label_map.get(src, "Dok.")
+                        st.info(f"**{label} {h.get('article_number', 'Unbekannt')}**: {h['content']}")
 
+# ================== TAB: DATENBANK-BROWSER ==================
 with tab_browser:
     st.subheader("Datenbank durchsuchen")
     c1, c2 = st.columns(2)
@@ -191,6 +264,7 @@ with tab_browser:
         with st.expander(f"Art. {row.get('article_number', 'Unbekannt')}: {row.get('title', 'Ohne Titel')}"):
             st.text_area("Volltext", row.get("full_text", ""), disabled=True, key=f"ta_{row.get('uuid', 'x')}")
 
+# ================== TAB: EVALUATION ==================
 with tab_metrics:
     st.subheader("Goldstandard-Evaluation")
     st.markdown(
