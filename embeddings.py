@@ -53,12 +53,12 @@ def embed(model_key: str, texts: list[str], is_query: bool = False) -> list[list
 
     if model_key == "SBERT":
         model = _sentence_transformer("paraphrase-multilingual-mpnet-base-v2")
-        return model.encode(texts, normalize_embeddings=True).tolist()
+        return model.encode(texts, normalize_embeddings=True, batch_size=32).tolist()
 
     if model_key == "E5Large":
         model = _sentence_transformer("intfloat/multilingual-e5-large")
         prefix = "query: " if is_query else "passage: "
         prefixed = [prefix + t for t in texts]
-        return model.encode(prefixed, normalize_embeddings=True).tolist()
+        return model.encode(prefixed, normalize_embeddings=True, batch_size=16).tolist()
 
     raise ValueError(f"Unbekanntes Embedding-Modell: {model_key}")
