@@ -130,13 +130,67 @@ def delete_collection(client, m, s):
 
 
 def import_articles(client, documents, model_key, strategy_key):
-    # Alte Daten entfernen, damit wiederholter Import nicht dupliziert
+    """Importiert Dokumente mit gewählter Chunking-Strategie und Embedding-Modell."""
     delete_collection(client, model_key, strategy_key)
     setup_collection(client, model_key, strategy_key)
     strat = STRATEGIES[strategy_key]
     prefix = collection_prefix(model_key, strategy_key)
     art_col = client.collections.get(f"{prefix}_Article")
     chunk_col = client.collections.get(f"{prefix}_Chunk")
+
+    is_local = model_key in LOCAL_MODELS
+    doc_count, chunk_count, pairs = 0, 0, []
+
+    # 1. Artikel schreiben + chunken
+    with art_col.batch.dynamic() as batch:
+        for doc in documents:
+            uid = str(uuid.uuid4())
+            properties = {
+                "article_number": int(doc.get("article_number", 0)),
+                "source_type": doc.get("source_type", "artikel"),
+                "title": doc.get("title", ""),
+                "full_text": doc.get("full_text", ""),
+            }
+            if is_local:
+                doc_vec = embed(model_key, [doc.get("full_text", "")])[0]
+                batch.add_object(properties=properties, uuid=uid, vector=doc_vec)
+            else:
+                batch.add_object(properties=properties, uuid=uid)
+            doc_count += 1
+            chunks = chunk(doc.get("full_text", ""), strat)
+            pairs.append(((uid, int(doc.get("article_number", 0)), doc.get("title", ""), doc.get("source_type", "artikel")), chunks))
+
+    # 2. Bei lokalen Modellen: ALLE Chunks in einem Rutsch vektorisieren (schnelles Batching)
+    local_vectors = {}
+    if is_local:
+        flat_texts, index_map = [], []
+        for p_idx, (_, chunks) in enumerate(pairs):
+            for c_idx, text in enumerate(chunks):
+                flat_texts.append(text)
+                index_map.append((p_idx, c_idx))
+        all_vecs = embed(model_key, flat_texts) if flat_texts else []
+        for (p_idx, c_idx), vec in zip(index_map, all_vecs):
+            local_vectors[(p_idx, c_idx)] = vec
+
+    # 3. Chunks schreiben
+    with chunk_col.batch.dynamic() as batch:
+        for p_idx, ((uid, nr, title, src), chunks) in enumerate(pairs):
+            for c_idx, text in enumerate(chunks):
+                properties = {
+                    "content": text,
+                    "chunk_index": c_idx,
+                    "chunk_total": len(chunks),
+                    "article_number": nr,
+                    "source_type": src,
+                    "title": title,
+                }
+                kwargs = dict(properties=properties, references={"ofArticle": uid})
+                if is_local:
+                    kwargs["vector"] = local_vectors[(p_idx, c_idx)]
+                batch.add_object(**kwargs)
+                chunk_count += 1
+
+    return {"documents": doc_count, "chunks": chunk_count}
 
     is_local = model_key in LOCAL_MODELS
 
