@@ -140,7 +140,7 @@ docker-compose.yml   Weaviate + Streamlit als Docker-Stack
 Dockerfile           Image für die Streamlit-App
 requirements.txt     Python-Abhängigkeiten
 data/
-  goldstandard.json  Manuell annotierter Testdatensatz (aktuell 10 Fragen, Ziel 20 in Etappe 1)
+  goldstandard.json  Manuell annotierter Testdatensatz (30 Fragen)
   cache_*.json       Gecachte Scraping-Ergebnisse
 ```
 
@@ -149,7 +149,7 @@ data/
 ## Roadmap
 
 - [x] Etappe 0: Sicherungs-Setup (Git-Tag + Feature-Branch)
-- [ ] Etappe 1: Goldstandard-Testdatensatz (10 → 20 Fragen, kategorisiert)
+- [ ] Etappe 1: Goldstandard-Testdatensatz (30 Fragen, validieren!)
 - [ ] Etappe 2: Eval-Skripte (Precision@5, MRR@5, NDCG@5)
 - [ ] Etappe 3: ragas-Pipeline
 - [ ] Etappe 4: Vier Chunking-Strategien (Fixed, Sentence, Recursive, Semantic)
