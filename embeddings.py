@@ -10,7 +10,7 @@ import os
 from openai import OpenAI
 
 OPENAI_MODELS = {"3Small", "3Large"}
-LOCAL_MODELS = {"SBERT", "E5Large"}
+LOCAL_MODELS = {"SBERT"}
 
 _openai_client = None
 _st_models = {}
