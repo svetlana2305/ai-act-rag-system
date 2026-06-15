@@ -23,14 +23,14 @@ Faktorielles Experiment:
 | Variable | Ausprägungen |
 |---|---|
 | Chunking-Strategie | Fixed Character (1000/150), Sentence (8/1), Recursive Character (1000/150), Semantic (Threshold 0.75) |
-| Embedding-Modell | text-embedding-3-small, text-embedding-3-large, paraphrase-multilingual-mpnet-base-v2 (SBERT), intfloat/multilingual-e5-large |
-| Retrieval-Methode | BM25, Dense, Hybrid (alpha=0.5) |
+| Embedding-Modell | text-embedding-3-small, text-embedding-3-large, paraphrase-multilingual-mpnet-base-v2 (SBERT) |
+| Retrieval-Methode | BM25, Dense, Hybrid (alpha=0.5) 
 
 **Zwei getrennte Verarbeitungsphasen:**
 1. Chunking (`chunking.py`) — Text wird je Strategie in Abschnitte zerlegt
 2. Embedding (`embeddings.py`) — jeder Chunk wird je Modell vektorisiert
 
-**Matrix:** 4 Chunking × 4 Embedding = 16 Collections. Jede wird mit BM25, Dense und Hybrid abgefragt.
+**Matrix:** 4 Chunking × 3 Embedding = 12 Collections. Jede wird mit BM25, Dense und Hybrid abgefragt.
 
 ### Metriken
 
@@ -75,11 +75,8 @@ Docker-Compose-Stack (Weaviate + Streamlit). Auto-Deploy auf Branch `main`.
 
 ### Server-Anforderung
 
-Die Open-Source-Modelle (SBERT, E5-Large) laden lokal via `sentence-transformers` und brauchen Arbeitsspeicher. Empfehlung: **mindestens 4 GB RAM** (Server-Typ "Medium" oder größer). Auf 1-2 GB crasht der Import von E5-Large.
+Das Open-Source-Modell SBERT lädt lokal via `sentence-transformers`. Ein Server mit 2 GB RAM ("Base") reicht für die drei verwendeten Modelle aus.
 
-### Health-Check beim Import
-
-Lange Importe blockieren den Streamlit-Thread, wodurch der Health-Check fehlschlagen kann. Falls Sliplane den Container während des Imports neu startet: Health-Check Grace Period erhöhen oder temporär deaktivieren.
 
 ### Workflow für Code-Änderungen
 
@@ -111,7 +108,7 @@ Open-Source-Modelle (SBERT, E5) brauchen keinen API-Key, werden lokal im Contain
 admin_app.py          Streamlit-Frontend (4 Tabs: Daten/Suche/Browser/Evaluation)
 database_manager.py   Weaviate-Logik (Schema, Import mit Chunking+Embedding, Retrieval, Status)
 chunking.py           Vier Chunking-Strategien (Fixed, Sentence, Recursive, Semantic)
-embeddings.py         Embedding-Adapter OpenAI + Sentence-Transformers (mit E5-Prefix)
+embeddings.py         Embedding-Adapter OpenAI + Sentence-Transformers
 scraper.py            Web-Scraper mit Last-Modified-Pruefung
 eval_ir.py            IR-Metriken Precision@5, MRR@5, NDCG@5
 run_eval.py           Orchestrierung der Eval-Laeufe
@@ -126,32 +123,23 @@ data/
 
 ---
 
-## Import-Reihenfolge (Empfehlung)
-
-Wegen der Rechenlast lokaler Modelle nicht direkt "ALLE importieren", sondern stufenweise:
-
-1. `3Small / Fixed` (OpenAI, schnell) — prueft die Pipeline
-2. `SBERT / Fixed` (erstes lokales Modell, laedt ~1 GB beim ersten Mal)
-3. `E5Large / Fixed` (groesstes Modell, RAM-Stresstest)
-4. Wenn alle drei laufen: restliche Collections oder "ALLE importieren" (Modelle sind dann gecacht)
-
-Lokale Modelle vektorisieren auf der geteilten CPU langsam (Chunk fuer Chunk, einige Sekunden pro Chunk). Eine Collection mit ~850 Chunks dauert mehrere Minuten.
-
----
-
 ## Roadmap
 
 - [x] Etappe 0: Sicherungs-Setup (Git-Tag + Feature-Branch)
-- [x] Etappe 1: Goldstandard-Testdatensatz (30 Fragen, kategorisiert)
+- [x] Etappe 1: Goldstandard-Testdatensatz (kategorisiert)
 - [x] Etappe 2: Eval-Skripte (Precision@5, MRR@5, NDCG@5)
 - [x] Etappe 4: Vier Chunking-Strategien
-- [x] Etappe 5: SBERT + E5-Large Embeddings
-- [ ] Etappe 6: Vollstaendige Eval-Laeufe auf allen 16 Collections
-- [ ] Etappe 3: ragas-Pipeline (Generierungsqualitaet)
+- [x] Etappe 5: Embedding-Modelle (3Small, 3Large, SBERT)
+- [ ] Etappe 6: Vollständige Eval-Läufe auf allen 12 Collections
+- [ ] Etappe 3: ragas-Pipeline (Generierungsqualität)
 - [ ] Etappe 7: Hausarbeit schreiben
+
 
 ---
 
-## Vorstudie
+## Ausblick
+
+Das mehrsprachige Modell `intfloat/multilingual-e5-large` war als viertes Embedding-Modell vorgesehen, wurde aber wegen seines hohen Arbeitsspeicher- und Rechenbedarfs in der gewählten Hosting-Umgebung nicht praktikabel umgesetzt. Eine Erweiterung um dieses oder ein vergleichbares Modell bleibt zukünftiger Arbeit vorbehalten.
+
 
 Aufbauend auf der Datenbanksysteme-Hausarbeit der Autorinnen (Januar 2026), die qualitativ den Einfluss von Chunking auf die Retrieval-Qualität untersucht hat. Die vorliegende NLP-Arbeit verallgemeinert diese Erkenntnis systematisch über mehrere Chunking-Strategien und Embedding-Modelle mit quantitativen Metriken.
