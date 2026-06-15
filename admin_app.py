@@ -151,7 +151,7 @@ with tab_browser:
     if st.button("Laden"): st.session_state["db_rows"] = browse_collection(client, db_m, db_s, 20)
     for row in st.session_state.get("db_rows", []):
         with st.expander(f"Art. {row.get('article_number', 'Unbekannt')}: {row.get('title', 'Ohne Titel')}"):
-            st.text_area("Volltext", row.get("full_text", ""), disabled=True)
+            st.text_area("Volltext", row.get("full_text", ""), disabled=True, key=f"ta_{row.get('uuid', 'x')}")
 
 with tab_metrics:
     st.subheader("Goldstandard-Evaluation")
