@@ -81,10 +81,11 @@ with tab_eval:
                         if st.checkbox(f"{m} / {s}", key=f"chk_{m}_{s}"): sel_cols.append((m, s))
         with c2:
             st.markdown("**Methoden:**")
+            all_meths = st.checkbox("Alle auswählen", value=False, key="meth_all")
             meths = []
-            if st.checkbox("Bedeutung", True): meths.append("semantic")
-            if st.checkbox("Stichwort (BM25)"): meths.append("bm25")
-            if st.checkbox("Hybrid"): meths.append("hybrid")
+            if st.checkbox("Bedeutung", value=all_meths or True, key="m_sem"): meths.append("semantic")
+            if st.checkbox("Stichwort (BM25)", value=all_meths, key="m_bm"): meths.append("bm25")
+            if st.checkbox("Hybrid", value=all_meths, key="m_hyb"): meths.append("hybrid")
             top_k = st.slider("Treffer (Top-K)", 1, 5, 3)
 
     if st.button("Suchen & Generieren", type="primary"):
@@ -129,12 +130,26 @@ with tab_eval:
             st.divider()
 
         data = st.session_state["eval_data"]
-        md = ["# Ergebnis", f"Datum: {datetime.date.today()}"]
+        md = ["# Ergebnis", f"Datum: {datetime.date.today()}", ""]
         for q, res in data.items():
             md.append(f"## Frage: {q}")
+            md.append("")
+            # Gruppiere nach Methode
+            by_method = {}
             for (col, meth), hits in res.items():
-                for i, h in enumerate(hits, 1):
-                    md.append(f"**[{i}] Art. {h.get('article_number', 'Unbekannt')}**: {h['content']}")
+                by_method.setdefault(meth, []).append((col, hits))
+            method_names = {"semantic": "Bedeutung", "bm25": "Stichwort (BM25)", "hybrid": "Hybrid"}
+            for meth, blocks in by_method.items():
+                md.append(f"### Methode: {method_names.get(meth, meth)}")
+                for col, hits in blocks:
+                    md.append(f"#### {col}")
+                    for i, h in enumerate(hits, 1):
+                        art_nr = h.get("article_number", "Unbekannt")
+                        src = h.get("source_type", "artikel")
+                        label_map = {"artikel": "Art.", "anhang": "Anhang", "erwaegungsgrund": "Erw.-Grund"}
+                        label = label_map.get(src, "Dok.")
+                        md.append(f"**[{i}] {label} {art_nr}**: {h['content']}")
+                    md.append("")
         
         st.download_button("📥 Protokoll (.md) laden", "\n".join(md), file_name="rag.md", key="dwn_1")
         for q, res in data.items():
