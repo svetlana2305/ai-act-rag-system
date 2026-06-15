@@ -71,22 +71,45 @@ with tab_eval:
         fragen = [f.strip() for f in fragen_text.splitlines() if f.strip()]
 
     with st.expander("⚙️ Parameter", expanded=True):
-        c1, c2 = st.columns(2)
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.markdown("**Konfigurationen:**")
+        available_configs = [
+            (m, s) for m in MODELS for s in STRATEGIES
+            if db_status.get((m, s), {}).get("documents", 0) > 0
+        ]
+
+        b1, b2 = st.columns(2)
+        if b1.button("Alle", key="cfg_all", use_container_width=True):
+            for m, s in available_configs:
+                st.session_state[f"chk_{m}_{s}"] = True
+        if b2.button("Keine", key="cfg_none", use_container_width=True):
+            for m, s in available_configs:
+                st.session_state[f"chk_{m}_{s}"] = False
+
         sel_cols = []
-        with c1:
-            st.markdown("**Konfigurationen:**")
-            for m in MODELS:
-                for s in STRATEGIES:
-                    if db_status.get((m, s), {}).get("documents", 0) > 0:
-                        if st.checkbox(f"{m} / {s}", key=f"chk_{m}_{s}"): sel_cols.append((m, s))
-        with c2:
-            st.markdown("**Methoden:**")
-            all_meths = st.checkbox("Alle auswählen", value=False, key="meth_all")
-            meths = []
-            if st.checkbox("Bedeutung", value=all_meths or True, key="m_sem"): meths.append("semantic")
-            if st.checkbox("Stichwort (BM25)", value=all_meths, key="m_bm"): meths.append("bm25")
-            if st.checkbox("Hybrid", value=all_meths, key="m_hyb"): meths.append("hybrid")
-            top_k = st.slider("Treffer (Top-K)", 1, 5, 3)
+        for m, s in available_configs:
+            if st.checkbox(f"{m} / {s}", key=f"chk_{m}_{s}"):
+                sel_cols.append((m, s))
+
+    with c2:
+        st.markdown("**Methoden:**")
+        b3, b4 = st.columns(2)
+        if b3.button("Alle", key="meth_all", use_container_width=True):
+            st.session_state["m_sem"] = True
+            st.session_state["m_bm"] = True
+            st.session_state["m_hyb"] = True
+        if b4.button("Keine", key="meth_none", use_container_width=True):
+            st.session_state["m_sem"] = False
+            st.session_state["m_bm"] = False
+            st.session_state["m_hyb"] = False
+
+        meths = []
+        if st.checkbox("Semantisch (Dense)", key="m_sem"): meths.append("semantic")
+        if st.checkbox("Stichwort (BM25)", key="m_bm"): meths.append("bm25")
+        if st.checkbox("Hybrid (BM25 + Dense)", key="m_hyb"): meths.append("hybrid")
+        top_k = st.slider("Treffer (Top-K)", 1, 5, 3)
 
     if st.button("Suchen & Generieren", type="primary"):
         ergebnisse = {}
