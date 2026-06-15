@@ -130,7 +130,8 @@ def delete_collection(client, m, s):
 
 
 def import_articles(client, documents, model_key, strategy_key):
-    """Importiert Dokumente mit gewählter Chunking-Strategie und Embedding-Modell."""
+    # Alte Daten entfernen, damit wiederholter Import nicht dupliziert
+    delete_collection(client, model_key, strategy_key)
     setup_collection(client, model_key, strategy_key)
     strat = STRATEGIES[strategy_key]
     prefix = collection_prefix(model_key, strategy_key)
