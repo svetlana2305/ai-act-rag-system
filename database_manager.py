@@ -17,7 +17,6 @@ MODELS = {
     "3Small": "text-embedding-3-small",
     "3Large": "text-embedding-3-large",
     "SBERT": "paraphrase-multilingual-mpnet-base-v2",
-    "E5Large": "intfloat/multilingual-e5-large",
 }
 
 # Vier Chunking-Strategien gemäß NLP-Konzept
