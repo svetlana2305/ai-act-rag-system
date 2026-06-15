@@ -37,10 +37,3 @@ Faktorielles Experiment mit zweistufiger Analyse:
 EU AI Act, 306 Dokumente: 113 Artikel + 13 Anhänge + 180 Erwägungsgründe.
 Quelle: artificialintelligenceact.eu/de
 
----
-
-## Lokal starten
-
-**Voraussetzung:** Docker Desktop
-
-```bash
