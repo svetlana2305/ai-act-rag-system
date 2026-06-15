@@ -13,7 +13,7 @@ from eval_ir import evaluate_query
 K = 5
 HYBRID_ALPHA = 0.5
 METHODS = ["bm25", "semantic", "hybrid"]
-GOLD_PATH = Path("data/goldstandard.json")
+GOLD_PATH = Path("eval/goldstandard.json")
 
 
 def load_goldstandard(path: Path = GOLD_PATH) -> list[dict]:
