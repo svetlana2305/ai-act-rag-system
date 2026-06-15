@@ -90,7 +90,7 @@ with tab_data:
 
     st.markdown("### Import durchführen")
     st.caption(
-        "Lokale Modelle (SBERT, E5Large) laden beim ersten Import ihr Modell herunter "
+        "Lokale Modelle (SBERT) laden beim ersten Import ihr Modell herunter "
         "und brauchen deutlich länger als die OpenAI-Modelle."
     )
 
