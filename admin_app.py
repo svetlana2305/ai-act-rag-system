@@ -157,7 +157,7 @@ with tab_metrics:
     st.subheader("Goldstandard-Evaluation")
     st.markdown(
         "Berechnet Precision@5, MRR@5 und NDCG@5 über alle befüllten Konfigurationen "
-        "anhand des Goldstandard-Datensatzes (`data/goldstandard.json`)."
+        "anhand des Goldstandard-Datensatzes (`eval/goldstandard.json`)."
     )
 
     if st.button("Eval starten", type="primary"):
