@@ -15,7 +15,7 @@ Zwei Dienste auf Sliplane, verbunden über ein internes Docker-Netzwerk:
 | `streamlit-app` | öffentliche URL, Login | Frontend, Chunking, Embedding, Retrieval, Eval |
 | `weaviate` | intern (`weaviate.internal:8080`) | Vektordatenbank und BM25-Index |
 
-Weaviate ist bewusst nicht öffentlich erreichbar. Alle Zugriffe laufen über die Streamlit-App. Server-Anforderung: mindestens 4 GB RAM, da die Open-Source-Modelle (SBERT, E5-Large) lokal im Container geladen und gerechnet werden.
+Weaviate ist bewusst nicht öffentlich erreichbar. Alle Zugriffe laufen über die Streamlit-App. Ein Server mit 2 GB RAM reicht für die drei verwendeten Modelle aus.
 
 ---
 
@@ -54,7 +54,7 @@ Pro Kombination aus Modell und Strategie existieren zwei Collections:
 - `AIAct_<Modell>_<Strategie>_Article` — das Gesamtdokument mit Metadaten
 - `AIAct_<Modell>_<Strategie>_Chunk` — die Textabschnitte, je mit Referenz `ofArticle` auf ihr Dokument
 
-Beispiel: `AIAct_3Small_Fixed_Chunk`.
+Beispiel: `AIAct_3Small_Fixed_Chunk`. Insgesamt 3 Modelle × 4 Strategien = 12 Konfigurationen.
 
 Eigenschaften der Chunk-Objekte:
 
@@ -86,6 +86,8 @@ Vier Strategien, einheitliche Rückgabe als Liste von Strings:
 | `chunk_recursive` | Recursive Character (1000/150) | LangChain RecursiveCharacterTextSplitter |
 | `chunk_semantic` | Semantic (Threshold 0.75) | LangChain SemanticChunker |
 
+Beobachtete Chunk-Anzahl auf dem EU-AI-Act-Korpus (306 Dokumente): Fixed 849, Sentence 518, Recursive 893, Semantic 1034. Die Chunk-Anzahl ist modellunabhängig.
+
 Der `SemanticChunker` nutzt `text-embedding-3-small` als Hilfsmodell, um Themenwechsel zu erkennen. Dieser Aufruf kostet OpenAI-Guthaben, unabhängig vom später gewählten Embedding-Modell.
 
 ### embeddings.py
@@ -96,13 +98,12 @@ Einheitliche Funktion `embed(model_key, texts, is_query=False)`:
 | 3Small | OpenAI API | 1536 | server-seitige Vektorisierung durch Weaviate |
 | 3Large | OpenAI API | 3072 | server-seitige Vektorisierung durch Weaviate |
 | SBERT | lokal (sentence-transformers) | 768 | Modell `paraphrase-multilingual-mpnet-base-v2` |
-| E5Large | lokal (sentence-transformers) | 1024 | Modell `intfloat/multilingual-e5-large`, Prefix nötig |
 
-E5-Modelle erwarten zwingend einen Prefix: `passage: ` für Dokumente, `query: ` für Suchanfragen. Ohne diesen Prefix sinkt die Retrieval-Qualität deutlich.
+Lokale Modelle werden in Batches vektorisiert (`batch_size`), um die Verarbeitung zu beschleunigen.
 
 ### database_manager.py
 - `setup_collection` — legt Schema an. Für OpenAI-Modelle wird der Weaviate-Vectorizer `text2vec-openai` konfiguriert. Für lokale Modelle `Vectorizer.none()`, die Vektoren werden beim Insert direkt mitgegeben.
-- `import_articles` — chunkt jedes Dokument einzeln, vektorisiert (bei lokalen Modellen) und schreibt Article- und Chunk-Objekte in Batches.
+- `import_articles` — löscht zuerst die Collection (idempotent), chunkt jedes Dokument einzeln, vektorisiert (bei lokalen Modellen in einem gebündelten Batch) und schreibt Article- und Chunk-Objekte.
 - `retrieve_chunks` — Suche. Bei OpenAI-Modellen läuft Dense-Suche über `near_text` (Weaviate vektorisiert die Anfrage selbst). Bei lokalen Modellen wird der Query-Vektor lokal berechnet und über `near_vector` gesucht.
 - `get_status` — zählt Dokumente und Chunks je Collection.
 
@@ -141,7 +142,7 @@ Der Hybrid-Parameter `alpha` steht auf 0.5 (gleichgewichtet). `alpha=0.0` wäre 
 
 ## 6. Evaluation
 
-Die Evaluation vergleicht die Top-5-Treffer jeder Konfiguration gegen den Goldstandard (`eval/goldstandard.json`, 30 Frage-Artikel-Paare).
+Die Evaluation vergleicht die Top-5-Treffer jeder Konfiguration gegen den Goldstandard (`eval/goldstandard.json`).
 
 - **Precision@5** — wie viele der fünf Treffer relevant sind
 - **MRR@5** — wie weit oben der erste relevante Treffer steht
@@ -185,6 +186,6 @@ Bekannte Einschränkung: Der Goldstandard verweist auf Artikelnummern. Liefert d
 
 ---
 
-## 9. Vorstudie
+## 9. Ausblick
 
-Das System knüpft an die Datenbanksysteme-Hausarbeit der Autorinnen (Januar 2026) an. Dort wurde qualitativ gezeigt, dass Chunking die Retrieval-Qualität beeinflusst (Beispiel Artikel 5: relevante Passagen wurden erst durch Chunking zuverlässig gefunden). Die vorliegende NLP-Arbeit verallgemeinert diesen Befund systematisch über vier Chunking-Strategien und vier Embedding-Modelle mit quantitativen Metriken.
+Das mehrsprachige Modell `intfloat/multilingual-e5-large` war als viertes Embedding-Modell vorgesehen, erwies sich jedoch wegen seines hohen Arbeitsspeicher- und Rechenbedarfs in der gewählten Hosting-Umgebung (geteilte CPU, begrenzter RAM) als nicht praktikabel. Eine Erweiterung um dieses oder ein vergleichbares mehrsprachiges Modell bleibt zukünftiger Arbeit vorbehalten.
