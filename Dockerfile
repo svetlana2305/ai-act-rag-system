@@ -9,9 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY admin_app.py .
-COPY database_manager.py .
-COPY scraper.py .
+COPY . .
 
 RUN mkdir -p /app/data
 
