@@ -18,7 +18,7 @@ Das System scrapt den EU AI Act, zerlegt ihn in Textabschnitte (Chunks) und verg
 
 ### Forschungsdesign
 
-Faktorielles Experiment mit zweistufiger Analyse:
+Faktorielles Experiment:
 
 | Variable | Ausprägungen |
 |---|---|
@@ -26,13 +26,16 @@ Faktorielles Experiment mit zweistufiger Analyse:
 | Embedding-Modell | text-embedding-3-small, text-embedding-3-large, paraphrase-multilingual-mpnet-base-v2 (SBERT), intfloat/multilingual-e5-large |
 | Retrieval-Methode | BM25, Dense, Hybrid (alpha=0.5) |
 
-**Hauptanalyse:** 4 × 4 = 16 Konfigurationen mit Hybrid-Retrieval.
-**Tiefenanalyse:** beste Konfiguration über alle 3 Retrieval-Methoden.
+**Zwei getrennte Verarbeitungsphasen:**
+1. Chunking (`chunking.py`) — Text wird je Strategie in Abschnitte zerlegt
+2. Embedding (`embeddings.py`) — jeder Chunk wird je Modell vektorisiert
+
+**Matrix:** 4 Chunking × 4 Embedding = 16 Collections. Jede wird mit BM25, Dense und Hybrid abgefragt.
 
 ### Metriken
 
 - **Information Retrieval:** Precision@5, MRR@5, NDCG@5
-- **Generierungsqualität:** ragas Faithfulness, Context Precision, Context Recall, Answer Relevancy
+- **Generierungsqualität (geplant):** ragas Faithfulness, Context Precision, Context Recall, Answer Relevancy
 
 ### Korpus
 
@@ -43,73 +46,48 @@ Quelle: artificialintelligenceact.eu/de
 
 ## Nutzung der Live-App
 
-1. https://ai-act-rag-system.sliplane.app/ öffnen
-2. Mit Admin-Credentials einloggen
-3. Sidebar prüfen: Weaviate sollte online sein
-4. **Tab "Suche & Ausgabe":** Frage stellen, Modell + Chunking-Strategie + Methode wählen, Top-K Treffer ansehen oder generierte Antwort lesen
-5. **Tab "Datenbank-Browser":** durch importierte Artikel browsen
+Vier Tabs:
 
-Auf der Live-Instanz sind die Collections vorbefüllt. Re-Scrape oder Re-Import läuft über die Sidebar "System-Wartung".
-
-### Eval-Funktion (geplant Etappe 2)
-
-In Streamlit integrierter Batch-Modus erlaubt mehrere Testfragen gleichzeitig. Ergebnisse werden als Markdown exportiert. Vollständige Eval läuft als separates Skript (siehe unten).
+1. **Daten & Import** — Korpus scrapen, Collections befüllen (einzeln oder alle), Status aller 16 Collections
+2. **Suche & Ausgabe** — Frage stellen, Konfigurationen + Methoden wählen, Treffer ansehen oder Antwort generieren, Protokoll als Markdown exportieren
+3. **Datenbank-Browser** — importierte Dokumente und Volltexte einsehen
+4. **Evaluation** — Precision@5, MRR@5, NDCG@5 über alle befüllten Collections, Ergebnis als CSV
 
 ---
 
 ## Reproduzierbarkeit der Eval
 
-Wird in Etappe 2-6 implementiert. Geplanter Ablauf:
+In der Live-App Tab "Evaluation" → "Eval starten". Alternativ als Skript:
 
 ```bash
-# Voraussetzung: alle Collections auf Sliplane befüllt
 python run_eval.py
 ```
 
-Output:
-- `results_main.csv` — 16 Konfigurationen × 3 IR-Metriken
-- `results_retrieval.csv` — Tiefenanalyse mit BM25/Dense/Hybrid
-- `results_ragas.csv` — Top-3 Konfigurationen × 4 ragas-Metriken
+Output: `results_baseline.csv` — alle befüllten Konfigurationen × 3 IR-Metriken.
 
-Testdatensatz: `data/goldstandard.json`. Aktueller Stand: 10 manuell annotierte Frage-Artikel-Paare, Ausbau auf 20 in Etappe 1 geplant.
+Testdatensatz: `eval/goldstandard.json` (30 manuell annotierte Frage-Artikel-Paare, kategorisiert nach definition/verbot/pflicht/transparenz/gpai/sanktion).
 
 ---
 
 ## Deployment auf Sliplane
 
-Die App läuft auf Sliplane mit Docker-Compose-basiertem Stack (Weaviate + Streamlit). Auto-Deploy ist auf Branch `main` konfiguriert.
+Docker-Compose-Stack (Weaviate + Streamlit). Auto-Deploy auf Branch `main`.
 
-### Initial-Setup (einmalig, bereits erfolgt)
+### Server-Anforderung
 
-1. Repository in Sliplane verbinden: *Add Service → From GitHub → ai-act-rag-system*
-2. Sliplane erkennt `docker-compose.yml` automatisch. Im Dashboard laufen zwei Services: `weaviate` und `streamlit-app`.
-3. Umgebungsvariablen im Sliplane-Dashboard setzen (siehe unten).
-4. Volume `weaviate_data` persistiert über Container-Restarts hinweg.
+Die Open-Source-Modelle (SBERT, E5-Large) laden lokal via `sentence-transformers` und brauchen Arbeitsspeicher. Empfehlung: **mindestens 4 GB RAM** (Server-Typ "Medium" oder größer). Auf 1-2 GB crasht der Import von E5-Large.
+
+### Health-Check beim Import
+
+Lange Importe blockieren den Streamlit-Thread, wodurch der Health-Check fehlschlagen kann. Falls Sliplane den Container während des Imports neu startet: Health-Check Grace Period erhöhen oder temporär deaktivieren.
 
 ### Workflow für Code-Änderungen
 
 ```
-Feature-Branch  →  Pull Request  →  Review  →  Merge in main  →  Auto-Deploy Sliplane
+Feature-Branch  ->  Pull Request  ->  Review  ->  Merge in main  ->  Auto-Deploy Sliplane
 ```
 
-Branch `feature/nlp-hausarbeit` ist aktiv in Entwicklung. Hauptstand: Tag `stable-2026-06-15` auf `main`.
-
----
-
-## Lokal starten (optional)
-
-Nur bei größeren Code-Änderungen oder zum Debuggen. Voraussetzung: Docker Desktop.
-
-```bash
-git clone https://github.com/svetlana2305/ai-act-rag-system.git
-cd ai-act-rag-system
-cp .env.example .env
-# .env befüllen
-docker compose up --build
-```
-
-- Admin-App: http://localhost:8501
-- Weaviate: http://localhost:8080
+Branch `feature/nlp-hausarbeit` aktiv in Entwicklung. Hauptstand: Tag `stable-2026-06-15` auf `main`.
 
 ---
 
@@ -117,44 +95,59 @@ docker compose up --build
 
 | Variable | Pflicht | Beschreibung |
 |---|---|---|
-| `OPENAI_API_KEY` | ja | OpenAI-Key für Embeddings und Generierung |
-| `ADMIN_USER_1` / `ADMIN_PASS_1` | ja | Svetlanas Login (Username `Svetlana`) |
-| `ADMIN_USER_2` / `ADMIN_PASS_2` | nein | Ricardas Login (Username `Ricarda`) |
-| `WEAVIATE_URL` | nein | Standard `http://weaviate.internal:8080` auf Sliplane, `http://weaviate:8080` lokal |
+| `OPENAI_API_KEY` | ja | OpenAI-Key für 3Small/3Large-Embeddings, Semantic-Chunking und Antwortgenerierung |
+| `ADMIN_USER_1` / `ADMIN_PASS_1` | ja | Login Svetlana |
+| `ADMIN_USER_2` / `ADMIN_PASS_2` | nein | Login Ricarda |
+| `WEAVIATE_URL` | nein | Standard `http://weaviate.internal:8080` auf Sliplane |
 | `DATA_DIR` | nein | Pfad für Scraping-Cache, Standard `/app/data` |
+
+Open-Source-Modelle (SBERT, E5) brauchen keinen API-Key, werden lokal im Container gerechnet.
 
 ---
 
 ## Projektstruktur
 
 ```
-admin_app.py         Streamlit-Frontend (Login, Scrape, Import, Suche, Eval)
-database_manager.py  Weaviate-Logik (Schema, Import, Status, Retrieval)
-scraper.py           Web-Scraper mit Last-Modified-Prüfung
-chunking.py          Chunking-Strategien (geplant Etappe 4)
-embeddings.py        Embedding-Adapter OpenAI + Sentence-Transformers (geplant Etappe 5)
-eval_ir.py           IR-Metriken Precision@5, MRR@5, NDCG@5 (geplant Etappe 2)
-eval_ragas.py        ragas-Pipeline (geplant Etappe 3)
-run_eval.py          Orchestrierung der Eval-Läufe (geplant Etappe 2)
-docker-compose.yml   Weaviate + Streamlit als Docker-Stack
-Dockerfile           Image für die Streamlit-App
-requirements.txt     Python-Abhängigkeiten
+admin_app.py          Streamlit-Frontend (4 Tabs: Daten/Suche/Browser/Evaluation)
+database_manager.py   Weaviate-Logik (Schema, Import mit Chunking+Embedding, Retrieval, Status)
+chunking.py           Vier Chunking-Strategien (Fixed, Sentence, Recursive, Semantic)
+embeddings.py         Embedding-Adapter OpenAI + Sentence-Transformers (mit E5-Prefix)
+scraper.py            Web-Scraper mit Last-Modified-Pruefung
+eval_ir.py            IR-Metriken Precision@5, MRR@5, NDCG@5
+run_eval.py           Orchestrierung der Eval-Laeufe
+docker-compose.yml    Weaviate + Streamlit als Docker-Stack
+Dockerfile            Image fuer die Streamlit-App
+requirements.txt      Python-Abhaengigkeiten (inkl. torch, sentence-transformers, langchain)
+eval/
+  goldstandard.json   Testdatensatz (30 Fragen, kategorisiert)
 data/
-  goldstandard.json  Manuell annotierter Testdatensatz (30 Fragen)
-  cache_*.json       Gecachte Scraping-Ergebnisse
+  cache_*.json        Gecachte Scraping-Ergebnisse (via Volume persistiert)
 ```
+
+---
+
+## Import-Reihenfolge (Empfehlung)
+
+Wegen der Rechenlast lokaler Modelle nicht direkt "ALLE importieren", sondern stufenweise:
+
+1. `3Small / Fixed` (OpenAI, schnell) — prueft die Pipeline
+2. `SBERT / Fixed` (erstes lokales Modell, laedt ~1 GB beim ersten Mal)
+3. `E5Large / Fixed` (groesstes Modell, RAM-Stresstest)
+4. Wenn alle drei laufen: restliche Collections oder "ALLE importieren" (Modelle sind dann gecacht)
+
+Lokale Modelle vektorisieren auf der geteilten CPU langsam (Chunk fuer Chunk, einige Sekunden pro Chunk). Eine Collection mit ~850 Chunks dauert mehrere Minuten.
 
 ---
 
 ## Roadmap
 
 - [x] Etappe 0: Sicherungs-Setup (Git-Tag + Feature-Branch)
-- [ ] Etappe 1: Goldstandard-Testdatensatz (30 Fragen, validieren!)
-- [ ] Etappe 2: Eval-Skripte (Precision@5, MRR@5, NDCG@5)
-- [ ] Etappe 3: ragas-Pipeline
-- [ ] Etappe 4: Vier Chunking-Strategien (Fixed, Sentence, Recursive, Semantic)
-- [ ] Etappe 5: SBERT + E5-Large Embeddings
-- [ ] Etappe 6: Vollständige Eval-Läufe
+- [x] Etappe 1: Goldstandard-Testdatensatz (30 Fragen, kategorisiert)
+- [x] Etappe 2: Eval-Skripte (Precision@5, MRR@5, NDCG@5)
+- [x] Etappe 4: Vier Chunking-Strategien
+- [x] Etappe 5: SBERT + E5-Large Embeddings
+- [ ] Etappe 6: Vollstaendige Eval-Laeufe auf allen 16 Collections
+- [ ] Etappe 3: ragas-Pipeline (Generierungsqualitaet)
 - [ ] Etappe 7: Hausarbeit schreiben
 
 ---
