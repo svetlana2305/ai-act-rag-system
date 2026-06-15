@@ -60,8 +60,7 @@ with st.sidebar:
 
 # --- HAUPTSEITE ---
 st.title("EU AI Act — RAG Forschungs-App")
-tab_eval, tab_browser = st.tabs(["Suche & Ausgabe", "Datenbank-Browser"])
-
+tab_eval, tab_browser, tab_metrics = st.tabs(["Suche & Ausgabe", "Datenbank-Browser", "Evaluation"])
 with tab_eval:
     mode = st.radio("Modus", ["Einzelne Frage", "Batch-Testreihe"], horizontal=True)
     user_query = st.text_input("Deine Frage:") if mode == "Einzelne Frage" else ""
@@ -153,3 +152,43 @@ with tab_browser:
     for row in st.session_state.get("db_rows", []):
         with st.expander(f"Art. {row.get('article_number', 'Unbekannt')}: {row.get('title', 'Ohne Titel')}"):
             st.text_area("Volltext", row.get("full_text", ""), disabled=True)
+
+with tab_metrics:
+    st.subheader("Goldstandard-Evaluation")
+    st.markdown(
+        "Berechnet Precision@5, MRR@5 und NDCG@5 über alle befüllten Konfigurationen "
+        "anhand des Goldstandard-Datensatzes (`data/goldstandard.json`)."
+    )
+
+    if st.button("Eval starten", type="primary"):
+        from run_eval import run_full_eval
+        import pandas as pd
+
+        progress = st.progress(0.0, text="Initialisiere ...")
+
+        def on_progress(fraction, message):
+            progress.progress(fraction, text=message)
+
+        with st.spinner("Eval läuft ..."):
+            rows = run_full_eval(client=client, progress_callback=on_progress)
+
+        if not rows:
+            st.warning("Keine Ergebnisse. Sind Collections befüllt?")
+        else:
+            df = pd.DataFrame(rows)
+            df = df.sort_values("mrr@5", ascending=False)
+            st.session_state["eval_results"] = df
+            progress.progress(1.0, text="Fertig.")
+
+    if "eval_results" in st.session_state:
+        df = st.session_state["eval_results"]
+        st.dataframe(df, use_container_width=True)
+        st.download_button(
+            "Ergebnisse als CSV laden",
+            df.to_csv(index=False).encode("utf-8"),
+            file_name="results_baseline.csv",
+            mime="text/csv",
+        )
+
+        st.markdown("### Top-3 Konfigurationen nach MRR@5")
+        st.table(df.head(3)[["model", "strategy", "method", "precision@5", "mrr@5", "ndcg@5"]])
