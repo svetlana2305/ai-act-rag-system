@@ -1,247 +1,68 @@
 {
-  "_comment": "Goldstandard-Testdatensatz für Eval des EU-AI-Act-RAG-Systems. 30 Frage-Artikel-Paare, manuell annotiert. Schema: id, frage, relevante_artikel (Liste von Artikelnummern), soll_typ (artikel/anhang/erwaegungsgrund), kategorie (definition/verbot/pflicht/transparenz/gpai/sanktion), begruendung (1-2 Sätze warum diese Artikel relevant sind). Bitte gemeinsam prüfen.",
-  "version": "0.3",
-  "datum": "2026-06-15",
+  "_comment": "Goldstandard-Testdatensatz EU AI Act RAG. 60 Fragen von Ricarda, Quellen: EU-Kommission FAQ, AI Act Service Desk FAQ, GPAI Q&A und selbst formulierte Praxisfragen mit Gesetzesbezug (Verordnung EU 2024/1689). relevante_artikel als kombinierte IDs (artikel_N / anhang_N), damit Artikel und Anhang gleicher Nummer nicht verwechselt werden. Kapitel-Referenzen sind durch die jeweils mitgenannten konkreten Artikel abgedeckt.",
+  "version": "1.0",
+  "datum": "2026-07-10",
+  "quelle": "Ricarda Toppel; offizielle EU-Kommission-FAQ + AI Act Service Desk + selbst formuliert",
   "fragen": [
-    {
-      "id": "Q01",
-      "frage": "Welche KI-Systeme sind laut EU AI Act vollständig verboten?",
-      "relevante_artikel": [5],
-      "soll_typ": "artikel",
-      "kategorie": "verbot",
-      "begruendung": "Artikel 5 enthält die abschließende Liste verbotener KI-Praktiken (Social Scoring, manipulative Techniken, biometrische Echtzeit-Fernidentifizierung, Emotionserkennung am Arbeitsplatz, biometrische Kategorisierung)."
-    },
-    {
-      "id": "Q02",
-      "frage": "Welche Pflichten haben Anbieter von Hochrisiko-KI-Systemen?",
-      "relevante_artikel": [16, 17, 18],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 16 listet die Pflichten der Anbieter. Artikel 17 regelt das Qualitätsmanagementsystem, Artikel 18 die Aufbewahrung der Dokumentation."
-    },
-    {
-      "id": "Q03",
-      "frage": "Was sind die Transparenzanforderungen für KI-Systeme?",
-      "relevante_artikel": [50, 13],
-      "soll_typ": "artikel",
-      "kategorie": "transparenz",
-      "begruendung": "Artikel 50 regelt Transparenzpflichten gegenüber Endnutzern (Chatbots, Deepfakes, biometrische Kategorisierung). Artikel 13 verlangt Transparenz und Informationsbereitstellung für Hochrisiko-Systeme gegenüber Betreibern."
-    },
-    {
-      "id": "Q04",
-      "frage": "Wie werden KI-Systeme mit hohem Risiko klassifiziert?",
-      "relevante_artikel": [6, 7],
-      "soll_typ": "artikel",
-      "kategorie": "definition",
-      "begruendung": "Artikel 6 definiert die Einstufungsregeln für Hochrisiko-KI-Systeme. Artikel 7 ermächtigt die Kommission, die Liste der Anwendungsfälle in Anhang III zu aktualisieren."
-    },
-    {
-      "id": "Q05",
-      "frage": "Welche Sanktionen drohen bei Verstößen gegen den EU AI Act?",
-      "relevante_artikel": [99, 100],
-      "soll_typ": "artikel",
-      "kategorie": "sanktion",
-      "begruendung": "Artikel 99 regelt die Geldbußen für Anbieter und Betreiber. Artikel 100 regelt die Sanktionen gegen Unionsorgane."
-    },
-    {
-      "id": "Q06",
-      "frage": "Welche Anforderungen gelten für Trainingsdaten von Hochrisiko-KI?",
-      "relevante_artikel": [10, 17],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 10 regelt Daten-Governance für Trainings-, Validierungs- und Testdatensätze. Artikel 17 verankert das Qualitätsmanagement, das die Datenpraktiken einbettet."
-    },
-    {
-      "id": "Q07",
-      "frage": "Welche Rolle spielt menschliche Aufsicht bei KI-Systemen?",
-      "relevante_artikel": [14, 26],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 14 verlangt für Hochrisiko-Systeme angemessene menschliche Aufsicht durch Design. Artikel 26 regelt die Pflichten der Betreiber, die Aufsicht praktisch umzusetzen."
-    },
-    {
-      "id": "Q08",
-      "frage": "Was sind Allzweck-KI-Modelle und welche Pflichten gelten für sie?",
-      "relevante_artikel": [51, 53, 55],
-      "soll_typ": "artikel",
-      "kategorie": "gpai",
-      "begruendung": "Artikel 51 definiert die Einstufung von GPAI-Modellen mit systemischem Risiko. Artikel 53 listet die Pflichten aller GPAI-Anbieter. Artikel 55 erweitert die Pflichten für GPAI mit systemischem Risiko."
-    },
-    {
-      "id": "Q09",
-      "frage": "Wie läuft das Konformitätsbewertungsverfahren ab?",
-      "relevante_artikel": [43, 44],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 43 regelt das Konformitätsbewertungsverfahren für Hochrisiko-KI-Systeme. Artikel 44 regelt Bescheinigungen und deren Geltungsdauer."
-    },
-    {
-      "id": "Q10",
-      "frage": "Welche Rechte haben betroffene Personen gegenüber automatisierten Entscheidungen?",
-      "relevante_artikel": [86, 50],
-      "soll_typ": "artikel",
-      "kategorie": "transparenz",
-      "begruendung": "Artikel 86 räumt Betroffenen ein Recht auf Erklärung bei Entscheidungen durch Hochrisiko-KI ein. Artikel 50 ergänzt um Informationspflichten bei Interaktion mit KI-Systemen."
-    },
-    {
-      "id": "Q11",
-      "frage": "Was gilt als KI-System im Sinne des EU AI Act?",
-      "relevante_artikel": [3],
-      "soll_typ": "artikel",
-      "kategorie": "definition",
-      "begruendung": "Artikel 3 enthält die Legaldefinitionen, insbesondere die zentrale Definition eines KI-Systems."
-    },
-    {
-      "id": "Q12",
-      "frage": "Was bedeutet General-Purpose-AI-Modell mit systemischem Risiko?",
-      "relevante_artikel": [51],
-      "soll_typ": "artikel",
-      "kategorie": "definition",
-      "begruendung": "Artikel 51 definiert, wann ein GPAI-Modell als systemisches Risiko gilt (Schwellenwert 10^25 FLOPs als Vermutungskriterium)."
-    },
-    {
-      "id": "Q13",
-      "frage": "Ist Social Scoring durch Behörden zulässig?",
-      "relevante_artikel": [5],
-      "soll_typ": "artikel",
-      "kategorie": "verbot",
-      "begruendung": "Artikel 5 Absatz 1 Buchstabe c verbietet Social-Scoring-Systeme durch öffentliche oder private Akteure unter bestimmten Bedingungen."
-    },
-    {
-      "id": "Q14",
-      "frage": "Darf Emotionserkennung am Arbeitsplatz eingesetzt werden?",
-      "relevante_artikel": [5],
-      "soll_typ": "artikel",
-      "kategorie": "verbot",
-      "begruendung": "Artikel 5 Absatz 1 Buchstabe f verbietet Emotionserkennung in Arbeits- und Bildungskontexten mit Ausnahme medizinischer oder Sicherheitszwecke."
-    },
-    {
-      "id": "Q15",
-      "frage": "Müssen KI-generierte Inhalte gekennzeichnet werden?",
-      "relevante_artikel": [50],
-      "soll_typ": "artikel",
-      "kategorie": "transparenz",
-      "begruendung": "Artikel 50 Absätze 2 und 4 verlangen die Kennzeichnung KI-generierter Inhalte, insbesondere Deepfakes und synthetische Audio-, Bild- oder Videoinhalte."
-    },
-    {
-      "id": "Q16",
-      "frage": "Welche Pflichten haben Betreiber von Hochrisiko-KI-Systemen?",
-      "relevante_artikel": [26],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 26 regelt die Pflichten der Betreiber (Deployer) von Hochrisiko-KI-Systemen, einschließlich Aufsicht, Aufbewahrung von Logs und Information der Betroffenen."
-    },
-    {
-      "id": "Q17",
-      "frage": "Welche Pflichten haben Importeure und Händler von KI-Systemen?",
-      "relevante_artikel": [23, 24],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 23 regelt die Pflichten der Importeure, Artikel 24 die Pflichten der Händler von Hochrisiko-KI-Systemen."
-    },
-    {
-      "id": "Q18",
-      "frage": "Welche technische Dokumentation müssen GPAI-Anbieter bereitstellen?",
-      "relevante_artikel": [53],
-      "soll_typ": "artikel",
-      "kategorie": "gpai",
-      "begruendung": "Artikel 53 Absatz 1 Buchstabe a verlangt umfassende technische Dokumentation einschließlich Trainings- und Testverfahren."
-    },
-    {
-      "id": "Q19",
-      "frage": "Wie hoch können Geldbußen bei Einsatz verbotener KI ausfallen?",
-      "relevante_artikel": [99],
-      "soll_typ": "artikel",
-      "kategorie": "sanktion",
-      "begruendung": "Artikel 99 Absatz 3 sieht für Verstöße gegen Artikel 5 Geldbußen bis 35 Mio. EUR oder 7 % des weltweiten Jahresumsatzes vor."
-    },
-    {
-      "id": "Q20",
-      "frage": "Welche Anforderungen gelten an die Cybersicherheit von Hochrisiko-KI-Systemen?",
-      "relevante_artikel": [15],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 15 regelt Genauigkeit, Robustheit und Cybersicherheit als Anforderungen an Hochrisiko-KI-Systeme."
-    },
-    {
-      "id": "Q21",
-      "frage": "Sind biometrische Echtzeit-Fernidentifikationssysteme in öffentlich zugänglichen Räumen erlaubt?",
-      "relevante_artikel": [5],
-      "soll_typ": "artikel",
-      "kategorie": "verbot",
-      "begruendung": "Artikel 5 Absatz 1 Buchstabe h und Absatz 2 verbieten biometrische Echtzeit-Fernidentifikation in öffentlich zugänglichen Räumen mit eng definierten Ausnahmen für die Strafverfolgung."
-    },
-    {
-      "id": "Q22",
-      "frage": "Sind manipulative oder unterschwellige KI-Techniken zulässig?",
-      "relevante_artikel": [5],
-      "soll_typ": "artikel",
-      "kategorie": "verbot",
-      "begruendung": "Artikel 5 Absatz 1 Buchstabe a verbietet KI-Systeme, die unterschwellige oder manipulative Techniken einsetzen, um Verhalten erheblich zu beeinflussen und Schaden zu verursachen."
-    },
-    {
-      "id": "Q23",
-      "frage": "Wie muss ein Risikomanagementsystem für Hochrisiko-KI aufgebaut sein?",
-      "relevante_artikel": [9],
-      "soll_typ": "artikel",
-      "kategorie": "pflicht",
-      "begruendung": "Artikel 9 verlangt ein dokumentiertes, iteratives Risikomanagement über den gesamten Lebenszyklus eines Hochrisiko-KI-Systems."
-    },
-    {
-      "id": "Q24",
-      "frage": "Müssen Nutzer informiert werden, wenn sie mit einem Chatbot interagieren?",
-      "relevante_artikel": [50],
-      "soll_typ": "artikel",
-      "kategorie": "transparenz",
-      "begruendung": "Artikel 50 Absatz 1 verlangt, dass Anbieter sicherstellen, dass Personen über die Interaktion mit einem KI-System informiert werden, sofern dies nicht offensichtlich ist."
-    },
-    {
-      "id": "Q25",
-      "frage": "Wie müssen synthetische Audio-, Bild- oder Videoinhalte gekennzeichnet werden?",
-      "relevante_artikel": [50],
-      "soll_typ": "artikel",
-      "kategorie": "transparenz",
-      "begruendung": "Artikel 50 Absatz 2 verlangt eine maschinenlesbare Kennzeichnung KI-generierter synthetischer Inhalte, damit sie als künstlich erzeugt erkennbar sind."
-    },
-    {
-      "id": "Q26",
-      "frage": "Was sind biometrische Daten im Sinne des AI Acts?",
-      "relevante_artikel": [3],
-      "soll_typ": "artikel",
-      "kategorie": "definition",
-      "begruendung": "Artikel 3 Nummer 34 definiert biometrische Daten als personenbezogene Daten, die durch spezielle technische Verfahren zu körperlichen, physiologischen oder verhaltensbezogenen Merkmalen einer Person gewonnen werden."
-    },
-    {
-      "id": "Q27",
-      "frage": "Was bedeutet Inverkehrbringen eines KI-Systems?",
-      "relevante_artikel": [3],
-      "soll_typ": "artikel",
-      "kategorie": "definition",
-      "begruendung": "Artikel 3 Nummer 9 definiert Inverkehrbringen als erstmalige Bereitstellung eines KI-Systems auf dem Unionsmarkt."
-    },
-    {
-      "id": "Q28",
-      "frage": "Wer ist für die Durchsetzung des EU AI Acts zuständig?",
-      "relevante_artikel": [64, 70],
-      "soll_typ": "artikel",
-      "kategorie": "sanktion",
-      "begruendung": "Artikel 64 etabliert das AI Office auf Unionsebene. Artikel 70 verpflichtet die Mitgliedstaaten zur Benennung nationaler zuständiger Behörden für die Marktüberwachung."
-    },
-    {
-      "id": "Q29",
-      "frage": "Welche urheberrechtlichen Pflichten haben GPAI-Anbieter?",
-      "relevante_artikel": [53],
-      "soll_typ": "artikel",
-      "kategorie": "gpai",
-      "begruendung": "Artikel 53 Absatz 1 Buchstabe c verpflichtet GPAI-Anbieter zu einer Strategie zur Einhaltung des Urheberrechts und Buchstabe d zu einer Zusammenfassung der Trainingsdaten."
-    },
-    {
-      "id": "Q30",
-      "frage": "Welche zusätzlichen Pflichten gelten für GPAI mit systemischem Risiko?",
-      "relevante_artikel": [55],
-      "soll_typ": "artikel",
-      "kategorie": "gpai",
-      "begruendung": "Artikel 55 verlangt von GPAI-Anbietern mit systemischem Risiko Modellevaluierungen, Risikobewertungen und Meldung schwerwiegender Vorfälle an das AI Office."
-    }
+    {"id": 1, "frage": "Warum braucht die EU eine Regulierung für künstliche Intelligenz?", "relevante_artikel": ["artikel_1"], "kategorie": "Allgemeines", "difficulty": "einfach"},
+    {"id": 2, "frage": "Für wen gilt der AI Act?", "relevante_artikel": ["artikel_2", "artikel_3"], "kategorie": "Allgemeines", "difficulty": "einfach"},
+    {"id": 3, "frage": "Wie reguliert der AI Act KI-Systeme und KI-Modelle?", "relevante_artikel": ["artikel_5", "artikel_6", "artikel_50"], "kategorie": "Allgemeines", "difficulty": "einfach"},
+    {"id": 4, "frage": "Warum ist der AI Act für öffentliche und private Akteure relevant?", "relevante_artikel": ["artikel_2"], "kategorie": "Allgemeines", "difficulty": "mittel"},
+    {"id": 5, "frage": "Welche Ausnahmen vom Anwendungsbereich sind für Forschung und Entwicklung relevant?", "relevante_artikel": ["artikel_2"], "kategorie": "Allgemeines", "difficulty": "mittel"},
+    {"id": 6, "frage": "Welche Beispiele nennt die EU-Kommission für Hochrisiko-KI?", "relevante_artikel": ["anhang_3"], "kategorie": "Hochrisiko-KI", "difficulty": "einfach"},
+    {"id": 7, "frage": "Wann wird ein KI-System als Hochrisiko-KI eingestuft?", "relevante_artikel": ["artikel_6", "anhang_1", "anhang_3"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 8, "frage": "Welche Pflichten haben Anbieter von Hochrisiko-KI-Systemen vor dem Inverkehrbringen?", "relevante_artikel": ["artikel_16", "artikel_17", "artikel_18", "artikel_19", "artikel_43", "artikel_47", "artikel_48"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 9, "frage": "Welche Pflichten haben Betreiber von Hochrisiko-KI-Systemen?", "relevante_artikel": ["artikel_26"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 10, "frage": "Wann müssen Betreiber eine Grundrechte-Folgenabschätzung durchführen?", "relevante_artikel": ["artikel_27"], "kategorie": "Hochrisiko-KI", "difficulty": "schwer"},
+    {"id": 11, "frage": "Welche Anforderungen müssen Hochrisiko-KI-Systeme erfüllen?", "relevante_artikel": ["artikel_8", "artikel_9", "artikel_10", "artikel_11", "artikel_12", "artikel_13", "artikel_14", "artikel_15"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 12, "frage": "Warum ist eine Konformitätsbewertung bei Hochrisiko-KI erforderlich?", "relevante_artikel": ["artikel_16", "artikel_43"], "kategorie": "Hochrisiko-KI", "difficulty": "schwer"},
+    {"id": 13, "frage": "Wie hängen Lebenszyklusverantwortung und Post-Market Monitoring bei Hochrisiko-KI zusammen?", "relevante_artikel": ["artikel_72", "artikel_16"], "kategorie": "Hochrisiko-KI", "difficulty": "schwer"},
+    {"id": 14, "frage": "Welche Transparenzpflichten gelten für Chatbots und Deepfakes?", "relevante_artikel": ["artikel_50"], "kategorie": "Transparenzpflichten", "difficulty": "einfach"},
+    {"id": 15, "frage": "Warum führt der AI Act Transparenzpflichten für bestimmte KI-Systeme ein?", "relevante_artikel": ["artikel_50"], "kategorie": "Transparenzpflichten", "difficulty": "mittel"},
+    {"id": 16, "frage": "Warum reguliert der AI Act General-Purpose-AI-Modelle?", "relevante_artikel": ["artikel_3"], "kategorie": "GPAI", "difficulty": "einfach"},
+    {"id": 17, "frage": "Was ist ein General-Purpose-AI-Modell?", "relevante_artikel": ["artikel_3"], "kategorie": "GPAI", "difficulty": "einfach"},
+    {"id": 18, "frage": "Welche Pflichten haben Anbieter von GPAI-Modellen?", "relevante_artikel": ["artikel_53"], "kategorie": "GPAI", "difficulty": "mittel"},
+    {"id": 19, "frage": "Welche zusätzlichen Pflichten gelten für GPAI-Modelle mit systemischem Risiko?", "relevante_artikel": ["artikel_55"], "kategorie": "GPAI", "difficulty": "schwer"},
+    {"id": 20, "frage": "Wie wird der AI Act durchgesetzt?", "relevante_artikel": ["artikel_64", "artikel_70", "artikel_75", "artikel_88"], "kategorie": "Governance und Sanktionen", "difficulty": "mittel"},
+    {"id": 21, "frage": "Was verlangt Artikel 4 zur KI-Kompetenz?", "relevante_artikel": ["artikel_4"], "kategorie": "AI Literacy und Begriffe", "difficulty": "einfach"},
+    {"id": 22, "frage": "Welche Personen sollten bei AI-Literacy-Maßnahmen berücksichtigt werden?", "relevante_artikel": ["artikel_4"], "kategorie": "AI Literacy und Begriffe", "difficulty": "mittel"},
+    {"id": 23, "frage": "Welche Kategorie betrifft KI-Anwendungen mit unannehmbarem Risiko?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "einfach"},
+    {"id": 24, "frage": "Ist Emotionserkennung in Bildungseinrichtungen grundsätzlich erlaubt?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "mittel"},
+    {"id": 25, "frage": "Wie prüft man, ob ein KI-System unter Anhang III fällt?", "relevante_artikel": ["artikel_6", "anhang_3"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 26, "frage": "Wann kann ein in Anhang III genanntes KI-System ausnahmsweise nicht als Hochrisiko gelten?", "relevante_artikel": ["artikel_6", "anhang_3"], "kategorie": "Hochrisiko-KI", "difficulty": "schwer"},
+    {"id": 27, "frage": "Welche Kategorie betrifft die Pflicht, Nutzer über KI-Interaktion zu informieren?", "relevante_artikel": ["artikel_50"], "kategorie": "Transparenzpflichten", "difficulty": "einfach"},
+    {"id": 28, "frage": "Gilt das GPAI-Regime für ein Modell unabhängig vom konkreten Nutzungskontext?", "relevante_artikel": ["artikel_3", "artikel_6"], "kategorie": "GPAI", "difficulty": "mittel"},
+    {"id": 29, "frage": "Welche Kategorie betrifft nationale Behörden und Durchsetzung?", "relevante_artikel": ["artikel_64", "artikel_70"], "kategorie": "Governance und Sanktionen", "difficulty": "einfach"},
+    {"id": 30, "frage": "Welche Rolle spielt die EU-Datenbank für Transparenz und Marktüberwachung?", "relevante_artikel": ["artikel_49", "artikel_71", "anhang_8"], "kategorie": "Governance und Sanktionen", "difficulty": "schwer"},
+    {"id": 31, "frage": "Was ist ein KI-System im Sinne des AI Acts?", "relevante_artikel": ["artikel_3"], "kategorie": "Allgemeines", "difficulty": "einfach"},
+    {"id": 32, "frage": "Was bedeutet Anbieter im AI Act?", "relevante_artikel": ["artikel_3"], "kategorie": "Allgemeines", "difficulty": "einfach"},
+    {"id": 33, "frage": "Was bedeutet Betreiber im AI Act?", "relevante_artikel": ["artikel_3"], "kategorie": "Allgemeines", "difficulty": "einfach"},
+    {"id": 34, "frage": "Wann trat der AI Act in Kraft?", "relevante_artikel": ["artikel_113"], "kategorie": "Allgemeines", "difficulty": "einfach"},
+    {"id": 35, "frage": "Ab wann gelten die Verbote des AI Acts?", "relevante_artikel": ["artikel_113", "artikel_5"], "kategorie": "Allgemeines", "difficulty": "mittel"},
+    {"id": 36, "frage": "Wann ist manipulative KI verboten?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "mittel"},
+    {"id": 37, "frage": "Wann ist die Ausnutzung von Vulnerabilitäten durch KI verboten?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "mittel"},
+    {"id": 38, "frage": "Sind bestimmte Social-Scoring-Systeme verboten?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "einfach"},
+    {"id": 39, "frage": "Darf KI allein aufgrund von Profiling das Risiko einer Straftat vorhersagen?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "mittel"},
+    {"id": 40, "frage": "Dürfen Gesichtserkennungsdatenbanken durch Scraping aus dem Internet erstellt werden?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "mittel"},
+    {"id": 41, "frage": "Welche biometrische Kategorisierung ist verboten?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "mittel"},
+    {"id": 42, "frage": "Wann kann biometrische Echtzeit-Fernidentifizierung ausnahmsweise zulässig sein?", "relevante_artikel": ["artikel_5"], "kategorie": "Verbotene KI-Praktiken", "difficulty": "schwer"},
+    {"id": 43, "frage": "Ein Unternehmen nutzt KI zur Vorauswahl von Bewerbungen. Welche Risikoklasse kommt in Betracht?", "relevante_artikel": ["anhang_3"], "kategorie": "Hochrisiko-KI", "difficulty": "schwer"},
+    {"id": 44, "frage": "Eine Hochschule nutzt KI zur Bewertung von Prüfungsleistungen. Welche Risikoklasse kommt in Betracht?", "relevante_artikel": ["anhang_3"], "kategorie": "Hochrisiko-KI", "difficulty": "schwer"},
+    {"id": 45, "frage": "Eine Bank nutzt KI zur Bewertung der Kreditwürdigkeit. Welche Risikoklasse kommt in Betracht?", "relevante_artikel": ["anhang_3"], "kategorie": "Hochrisiko-KI", "difficulty": "schwer"},
+    {"id": 46, "frage": "Was verlangt Artikel 9 zum Risikomanagement?", "relevante_artikel": ["artikel_9"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 47, "frage": "Welche Rolle spielt Daten-Governance bei Hochrisiko-KI?", "relevante_artikel": ["artikel_10"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 48, "frage": "Wozu dient technische Dokumentation bei Hochrisiko-KI?", "relevante_artikel": ["artikel_11", "anhang_4"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 49, "frage": "Warum sind Logs bei Hochrisiko-KI wichtig?", "relevante_artikel": ["artikel_12"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 50, "frage": "Was bedeutet menschliche Aufsicht bei Hochrisiko-KI?", "relevante_artikel": ["artikel_14"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 51, "frage": "Welche Anforderungen stellt Artikel 15 an Hochrisiko-KI?", "relevante_artikel": ["artikel_15"], "kategorie": "Hochrisiko-KI", "difficulty": "mittel"},
+    {"id": 52, "frage": "Müssen Nutzer informiert werden, wenn sie mit einem KI-System interagieren?", "relevante_artikel": ["artikel_50"], "kategorie": "Transparenzpflichten", "difficulty": "einfach"},
+    {"id": 53, "frage": "Wie müssen synthetisch erzeugte Inhalte gekennzeichnet werden?", "relevante_artikel": ["artikel_50"], "kategorie": "Transparenzpflichten", "difficulty": "mittel"},
+    {"id": 54, "frage": "Welche Transparenzpflichten können bei generativer KI und Deepfakes gemeinsam relevant werden?", "relevante_artikel": ["artikel_50"], "kategorie": "Transparenzpflichten", "difficulty": "schwer"},
+    {"id": 55, "frage": "Müssen GPAI-Anbieter eine Zusammenfassung der Trainingsinhalte veröffentlichen?", "relevante_artikel": ["artikel_53"], "kategorie": "GPAI", "difficulty": "mittel"},
+    {"id": 56, "frage": "Wann gilt ein GPAI-Modell als Modell mit systemischem Risiko?", "relevante_artikel": ["artikel_51"], "kategorie": "GPAI", "difficulty": "schwer"},
+    {"id": 57, "frage": "Welche Rolle spielt der GPAI Code of Practice?", "relevante_artikel": ["artikel_56", "artikel_53", "artikel_55"], "kategorie": "GPAI", "difficulty": "schwer"},
+    {"id": 58, "frage": "Welche nationalen Behörden müssen Mitgliedstaaten benennen?", "relevante_artikel": ["artikel_70"], "kategorie": "Governance und Sanktionen", "difficulty": "einfach"},
+    {"id": 59, "frage": "Welche Meldepflicht besteht bei schwerwiegenden Vorfällen?", "relevante_artikel": ["artikel_73"], "kategorie": "Governance und Sanktionen", "difficulty": "mittel"},
+    {"id": 60, "frage": "Welche Bußgelder drohen bei Verstößen gegen verbotene KI-Praktiken?", "relevante_artikel": ["artikel_99"], "kategorie": "Governance und Sanktionen", "difficulty": "schwer"}
   ]
 }
