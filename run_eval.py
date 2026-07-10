@@ -59,7 +59,7 @@ def run_full_eval(client=None, progress_callback=None) -> list[dict]:
                         client, model_key, strategy_key,
                         q["frage"], top_k=K, method=method, hybrid_alpha=HYBRID_ALPHA
                     )
-                    retrieved_ids = [str(h.get("article_number")) for h in hits]
+                    retrieved_ids = [f"{h.get('source_type', 'artikel')}_{h.get('article_number')}" for h in hits]
                     per_query.append(
                         evaluate_query(retrieved_ids, q["relevante_artikel"], k=K)
                     )
